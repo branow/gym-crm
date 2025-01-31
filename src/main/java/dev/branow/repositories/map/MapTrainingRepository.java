@@ -4,11 +4,13 @@ import dev.branow.model.Training;
 import dev.branow.repositories.TrainingRepository;
 import dev.branow.storage.KeyValueStorage;
 import dev.branow.storage.Reference;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Repository
 public class MapTrainingRepository extends MapRepository<Long, Training> implements TrainingRepository {
 
@@ -18,11 +20,13 @@ public class MapTrainingRepository extends MapRepository<Long, Training> impleme
 
     @Override
     public void deleteAllByTraineeId(Long traineeId) {
+        log.debug("Deleting all trainings by traineeId {}", traineeId);
         deleteAllByCondition(entry -> entry.getValue().getTraineeId().equals(traineeId));
     }
 
     @Override
     public void deleteAllByTrainerId(Long trainerId) {
+        log.debug("Deleting all trainings by trainerId {}", trainerId);
         deleteAllByCondition(entry -> entry.getValue().getTrainerId().equals(trainerId));
    }
 
