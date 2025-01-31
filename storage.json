@@ -1,0 +1,36 @@
+{
+  "trainings" : { },
+  "trainees" : {
+    "1" : {
+      "firstName" : "John",
+      "lastName" : "Smith",
+      "username" : "John.Smith",
+      "password" : ":VKWco%_+J",
+      "userId" : 1,
+      "dateOfBirth" : null,
+      "address" : null,
+      "active" : false
+    },
+    "2" : {
+      "firstName" : "John",
+      "lastName" : "Smith",
+      "username" : "John.Smith1",
+      "password" : "=*EQ#8~oQ[",
+      "userId" : 2,
+      "dateOfBirth" : null,
+      "address" : null,
+      "active" : false
+    }
+  },
+  "trainers" : {
+    "1" : {
+      "firstName" : "John",
+      "lastName" : "Smith",
+      "username" : "John.Smith2",
+      "password" : "W?YBAEJ?8?",
+      "userId" : 1,
+      "specialization" : "CARDIO",
+      "active" : false
+    }
+  }
+}
