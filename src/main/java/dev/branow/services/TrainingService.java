@@ -8,11 +8,13 @@ import dev.branow.repositories.TraineeRepository;
 import dev.branow.repositories.TrainerRepository;
 import dev.branow.repositories.TrainingRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TrainingService {
@@ -22,8 +24,12 @@ public class TrainingService {
     private final TrainerRepository trainerRepository;
 
     public Training getById(Long id) {
+        log.debug("Getting training with id {}", id);
         return repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(Training.class, id));
+                .orElseThrow(() -> {
+                    log.warn("Training with id {} not found", id);
+                    return new EntityNotFoundException(Training.class, id);
+                });
     }
 
     public List<Training> getAll() {
@@ -31,11 +37,23 @@ public class TrainingService {
     }
 
     public Training create(Training training) {
+        log.info("Creating new training {}", training);
+
         traineeRepository.findById(training.getTraineeId())
-                .orElseThrow(() -> new EntityNotFoundException(Trainee.class, training.getTraineeId()));
+                .orElseThrow(() -> {
+                    log.warn("Trainee with id {} not found", training.getTraineeId());
+                    return new EntityNotFoundException(Trainee.class, training.getTraineeId());
+                });
+
         trainerRepository.findById(training.getTrainerId())
-                .orElseThrow(() -> new EntityNotFoundException(Trainer.class, training.getTrainerId()));
-        return repository.create(training);
+                .orElseThrow(() -> {
+                    log.warn("Trainer with id {} not found", training.getTrainerId());
+                    return new EntityNotFoundException(Trainer.class, training.getTrainerId());
+                });
+
+        var newTraining = repository.create(training);
+        log.info("Training created successfully {}", newTraining);
+        return newTraining;
     }
 
 }

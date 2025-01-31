@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RequiredArgsConstructor
 public class UserService<ID, T extends User> {
 
@@ -20,8 +23,12 @@ public class UserService<ID, T extends User> {
     private final UsernameGenerator usernameGenerator;
 
     public T getById(ID id) {
+        log.debug("Getting user by id: {}", id);
         return repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(User.class, id));
+                .orElseThrow(() -> {
+                    log.warn("User not found by id: {}", id);
+                    return new EntityNotFoundException(User.class, id);
+                });
     }
 
     public List<T> getAll() {
@@ -29,21 +36,31 @@ public class UserService<ID, T extends User> {
     }
 
     public T create(T user) {
+        log.info("Creating new user: {}", user);
         user.setUsername(usernameGenerator.generate(user, getAllUsers()));
         user.setPassword(passwordGenerator.generate());
-        return repository.create(user);
+        var newUser = repository.create(user);
+        log.info("User created successfully: {}", newUser);
+        return newUser;
     }
 
     public T update(ID id, T user) {
+        log.info("Updating user: {}", user);
         var oldUser = this.getById(id);
+
         if (!oldUser.getFirstName().equals(user.getFirstName()) ||
                 !oldUser.getLastName().equals(user.getLastName())) {
+            log.debug("User {}: regenerating username", id);
             user.setUsername(usernameGenerator.generate(user, getAllUsers()));
         }
-        return repository.update(user);
+
+        var updatedUser = repository.update(user);
+        log.info("User {} updated successfully", id);
+        return updatedUser;
     }
 
     public void deleteById(ID id) {
+        log.info("Deleting user with id: {}", id);
         repository.deleteById(id);
     }
 
