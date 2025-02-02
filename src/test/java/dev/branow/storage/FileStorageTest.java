@@ -7,8 +7,10 @@ import org.junit.jupiter.api.Test;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -43,11 +45,14 @@ public class FileStorageTest {
 
     @Test
     public void testWrite() throws IOException {
-        var path = dir.resolve("test.txt");
-        assertFalse(Files.exists(path));
+        var path = dir.resolve(new Random().nextInt(1000) + "-test.txt");
         var storage = new FileStorage(path.toString());
-        Files.createFile(path);
+        assertFalse(Files.exists(path));
+        assertThrows(UncheckedIOException.class,
+                () -> storage.write(null));
+
         assertTrue(Files.exists(path));
+
         var expected = "Hello, World!".getBytes();
         storage.write(new ByteArrayInputStream(expected));
         assertArrayEquals(expected, Files.readAllBytes(path));
