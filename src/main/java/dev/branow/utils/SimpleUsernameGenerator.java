@@ -1,6 +1,5 @@
 package dev.branow.utils;
 
-
 import dev.branow.model.User;
 import org.springframework.stereotype.Component;
 
@@ -12,16 +11,27 @@ public class SimpleUsernameGenerator implements UsernameGenerator {
     @Override
     public <T extends User> String generate(T user, Stream<T> users) {
         var lastUserIndex = users
-                .filter(u -> u.getFirstName().equals(user.getFirstName()) && u.getLastName().equals(user.getLastName()))
-                .map(u -> u.getUsername().replaceAll(generate(u, -1), ""))
-                .map(num -> num.isEmpty() ? 0 : Integer.parseInt(num))
+                .filter((u) -> hasSameName(u, user))
+                .map(this::extractIndexFromUsername)
                 .max(Integer::compareTo)
                 .orElse(-1);
-        return generate(user, lastUserIndex);
+        return formatUsername(user, lastUserIndex);
     }
 
-    private <T extends User> String generate(T user, int index) {
+    private boolean hasSameName(User u1, User u2) {
+        return u1.getFirstName().equals(u2.getFirstName())
+                && u1.getLastName().equals(u2.getLastName());
+    }
+
+    private int extractIndexFromUsername(User user) {
+        String baseUsername = formatUsername(user, -1);
+        String suffix = user.getUsername().replace(baseUsername, "");
+        return suffix.isEmpty() ? 0 : Integer.parseInt(suffix);
+    }
+
+    private String formatUsername(User user, int index) {
         var indexStr = index == -1 ? "" : String.valueOf(index + 1);
         return user.getFirstName() + "." + user.getLastName() + indexStr;
     }
+
 }

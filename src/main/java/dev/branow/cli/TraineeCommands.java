@@ -27,8 +27,8 @@ public class TraineeCommands {
 
     private final TraineeService traineeService;
 
-    @Bean
-    public Command teeGet() {
+    @Bean("trainee-get")
+    public Command get() {
         return Command.builder()
                 .key("tee-get")
                 .usage("tee-get")
@@ -41,8 +41,8 @@ public class TraineeCommands {
                 .build();
     }
 
-    @Bean
-    public Command teeCrt() {
+    @Bean("trainee-create")
+    public Command create() {
         return Command.builder()
                 .key("tee-crt")
                 .usage("tee-crt <first-name> <last-name> <address?> <date-of-birth?>")
@@ -73,8 +73,8 @@ public class TraineeCommands {
                 .build();
     }
 
-    @Bean
-    public Command teeUpt() {
+    @Bean("trainee-update")
+    public Command update() {
         return Command.builder()
                 .key("tee-upt")
                 .usage("tee-upt <id> <first-name> <last-name> <address?> <date-of-birth?>")
@@ -113,8 +113,8 @@ public class TraineeCommands {
                 .build();
     }
 
-    @Bean
-    public Command teeDel() {
+    @Bean("trainee-delete")
+    public Command delete() {
         return Command.builder()
                 .key("tee-del")
                 .usage("tee-del <id>")

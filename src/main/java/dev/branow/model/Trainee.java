@@ -13,9 +13,7 @@ import java.time.LocalDate;
 @ToString(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Trainee extends User {
-
     Long userId;
     LocalDate dateOfBirth;
     String address;
-
 }

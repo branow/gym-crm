@@ -4,34 +4,28 @@ import java.io.*;
 
 public class FileStorage implements Storage {
 
-    private final String path;
+    private final File file;
 
     public FileStorage(String path) {
-        this.path = path;
+        this.file = new File(path);
     }
 
     @Override
     public InputStream read() {
-        var file = new File(path);
         try {
             return new FileInputStream(file);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException("Failed to read file: " + file.getPath(), e);
         }
     }
 
     @Override
-    public void write(InputStream os) {
-        var file = new File(path);
+    public void write(InputStream inputStream) {
         try (var fos = new FileOutputStream(file);
-             var bis = new BufferedInputStream(os)) {
-            byte[] buffer = new byte[8192];
-            int bytesRead;
-            while ((bytesRead = bis.read(buffer)) != -1) {
-                fos.write(buffer, 0, bytesRead);
-            }
+             var bis = new BufferedInputStream(inputStream)) {
+            bis.transferTo(fos);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException("Failed to write to file: " + file.getPath(), e);
         }
     }
 }

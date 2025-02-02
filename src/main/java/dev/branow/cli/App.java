@@ -4,7 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -13,61 +16,69 @@ import java.util.stream.Collectors;
 public class App {
 
     public static final String DASH = "-";
+    private static final String EXIT_COMMAND = "exit";
+    private static final String HELP_COMMAND = "exit";
+    private static final String USAGE_PREFIX = "exit";
+    private static final String NO_COMMAND_MESSAGE = "No command specified";
+    private static final String UNKNOWN_COMMAND_MESSAGE = "Unknown command";
 
     private final List<Command> commands;
 
+    private boolean isRunning = true;
+
     public void start() {
-        Scanner scanner = new Scanner(System.in);
-        var line = "";
-        System.out.println(help().execute(new String[]{}));
-        System.out.print(">");
-        while ((line = scanner.nextLine()) != null) {
+        try (Scanner scanner = new Scanner(System.in)) {
+            System.out.println(help().execute());
+            System.out.print("> ");
 
-            line = line.trim();
-            var args = Arrays.stream(line.split(" "))
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .toArray(String[]::new);
-
-            if (args.length == 0) {
-                System.err.println("No command");
+            while (isRunning && scanner.hasNextLine()) {
+                processInput(scanner.nextLine());
+                System.out.print("> ");
             }
+        }
+    }
 
-            var key = args[0];
-            if (key.equals("exit")) {
-                break;
-            }
+    private void processInput(String line) {
+        if (line.isEmpty()) {
+            System.err.println(NO_COMMAND_MESSAGE);
+            return;
+        }
 
-            Command command = null;
-            if (key.equals("help")) {
-                command = help();
-            }
+        var args = Arrays.stream(line.split(" "))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
 
-            for (var cmd : commands) {
-                if (key.equals(cmd.key())) {
-                    command = cmd;
-                }
-            }
+        var key = args[0];
+        if (EXIT_COMMAND.equals(key)) {
+            isRunning = false;
+            return;
+        }
 
-            if (command == null) {
-                System.err.println("Unknown command: " + key);
-                command = help();
-            }
+        var command = findCommand(key).orElseGet(() -> {
+            System.err.println(UNKNOWN_COMMAND_MESSAGE + " : " + key);
+            return help();
+        });
 
-            String response;
-            try {
-                response = command.execute(args);
-            } catch (Exception e) {
-                log.error(e.getMessage());
-                continue;
-            }
+        executeCommand(command, args);
+    }
 
-            if (response.equals("@")) {
-                System.out.println("Usage: " + command.usage());
-            } else {
-                System.out.println(response);
-            }
-            System.out.print(">");
+    private Optional<Command> findCommand(String key) {
+        if (HELP_COMMAND.equals(key)) {
+            return Optional.of(help());
+        }
+        return commands.stream()
+                .filter(cmd -> cmd.key().equals(key))
+                .findFirst();
+    }
+
+    private void executeCommand(Command command, String[] args) {
+        try {
+            String response = command.execute(args);
+            String output = response.equals("@") ? USAGE_PREFIX + command.usage() : response;
+            System.out.println(output);
+        } catch (Exception e) {
+            log.error("Error executing command: {}", e.getMessage());
         }
     }
 
@@ -76,9 +87,9 @@ public class App {
                 .key("help")
                 .usage("help")
                 .executor(_ ->
-                    commands.stream()
-                        .map(Command::usage)
-                        .collect(Collectors.joining("\n"))
+                        commands.stream()
+                                .map(Command::usage)
+                                .collect(Collectors.joining("\n"))
                 )
                 .build();
     }

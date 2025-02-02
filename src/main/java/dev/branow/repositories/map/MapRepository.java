@@ -24,16 +24,24 @@ public abstract class MapRepository<K, V> implements Repository<K, V> {
 
     @PostConstruct
     public void init() {
-        log.debug("Loading data for key: {}", key);
-        map = storage.get(key, reference).orElse(new HashMap<>());
-        log.info("Data successfully loaded for key: {}", key);
+        try {
+            log.debug("Loading data for key: {}", key);
+            map = storage.get(key, reference).orElse(new HashMap<>());
+            log.info("Data successfully loaded for key: {}", key);
+        } catch (Exception e) {
+            log.warn("Failed to load data for key: {}", key, e);
+        }
     }
 
     @PreDestroy
     public void destroy() {
-        log.debug("Saving data for key: {}", key);
-        storage.save(key, map);
-        log.info("Data successfully saved for key: {}", key);
+        try {
+            log.debug("Saving data for key: {}", key);
+            storage.save(key, map);
+            log.info("Data successfully saved for key: {}", key);
+        } catch (Exception e) {
+            log.warn("Failed to save data for key: {}", key, e);
+        }
     }
 
     protected abstract K getId(V value);

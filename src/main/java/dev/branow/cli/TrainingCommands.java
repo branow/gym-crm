@@ -27,8 +27,8 @@ public class TrainingCommands {
             .duration(Duration.ofMinutes(90))
             .build();
 
-    @Bean
-    public Command tngGet() {
+    @Bean("training-get")
+    public Command get() {
         return Command.builder()
                 .key("tng-get")
                 .usage("tng-get")
@@ -41,8 +41,8 @@ public class TrainingCommands {
                 .build();
     }
 
-    @Bean
-    public Command tngCrt() {
+    @Bean("training-update")
+    public Command create() {
         return Command.builder()
                 .key("tng-crt")
                 .usage("tng-crt <trainee-id> <trainer-id> <name> <type> <time> <duration>")
@@ -103,8 +103,6 @@ public class TrainingCommands {
                     return trainingService.create(training).toString();
                 })
                 .build();
-
-
     }
 
 }

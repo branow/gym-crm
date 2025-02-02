@@ -26,8 +26,8 @@ public class TrainerCommands {
 
     private final TrainerService trainerService;
 
-    @Bean
-    public Command terGet() {
+    @Bean("trainer-get")
+    public Command get() {
         return Command.builder()
                 .key("ter-get")
                 .usage("ter-get")
@@ -40,8 +40,8 @@ public class TrainerCommands {
                 .build();
     }
 
-    @Bean
-    public Command terCrt() {
+    @Bean("trainer-create")
+    public Command create() {
         return Command.builder()
                 .key("ter-crt")
                 .usage("ter-crt <first-name> <last-name> <specialization>")
@@ -70,8 +70,8 @@ public class TrainerCommands {
                 .build();
     }
 
-    @Bean
-    public Command terUpt() {
+    @Bean("trainer-update")
+    public Command update() {
         return Command.builder()
                 .key("ter-upt")
                 .usage("ter-upt <id> <first-name> <last-name> <specialization>")
