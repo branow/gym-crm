@@ -1,19 +1,21 @@
 package dev.branow.model;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-@Getter
-@RequiredArgsConstructor
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public enum TrainingType {
-    CARDIO("cardio"),
-    CROSSFIT("crossfit"),
-    YOGA("yoga"),
-    PILATES("pilates"),
-    BODYBUILDING("bodybuilding");
-
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Entity(name = "training_types")
+public class TrainingType {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
     String name;
 }

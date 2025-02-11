@@ -1,19 +1,21 @@
 package dev.branow.model;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import jakarta.persistence.*;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Entity(name = "trainees")
+@PrimaryKeyJoinColumn(name = "user_id", referencedColumnName = "id")
 public class Trainee extends User {
-    Long userId;
     LocalDate dateOfBirth;
     String address;
+    @OneToMany(mappedBy = "trainee", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<Training> trainings;
 }

@@ -1,16 +1,22 @@
 package dev.branow.model;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import jakarta.persistence.*;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
+@AllArgsConstructor
+@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Entity(name = "trainers")
+@PrimaryKeyJoinColumn(name = "user_id", referencedColumnName = "id")
 public class Trainer extends User {
-    Long userId;
+    @ManyToOne @JoinColumn(name = "specialization", referencedColumnName = "id")
     TrainingType specialization;
+    @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<Training> trainings;
 }
