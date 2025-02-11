@@ -1,6 +1,11 @@
 package dev.branow.repositories;
 
 import dev.branow.model.Trainee;
+import org.springframework.data.repository.ListCrudRepository;
 
-public interface TraineeRepository extends Repository<Long, Trainee> {
+import java.util.Optional;
+
+public interface TraineeRepository extends ListCrudRepository<Trainee, Long> {
+    Optional<Trainee> findByUsername(String username);
+    void deleteByUsername(String username);
 }
