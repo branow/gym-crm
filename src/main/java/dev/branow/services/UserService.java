@@ -1,75 +1,99 @@
 package dev.branow.services;
 
+import dev.branow.annotations.Authenticate;
+import dev.branow.annotations.Authorize;
+import dev.branow.annotations.Log;
+import dev.branow.auth.authorizers.UserAuthorizer;
+import dev.branow.dtos.ChangePasswordDto;
+import dev.branow.dtos.UpdateUserDto;
 import dev.branow.exceptions.EntityNotFoundException;
+import dev.branow.log.Level;
 import dev.branow.model.User;
-import dev.branow.repositories.Repository;
+import dev.branow.repositories.UserRepository;
 import dev.branow.utils.PasswordGenerator;
 import dev.branow.utils.UsernameGenerator;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 @Slf4j
+@Service
+@Validated
 @RequiredArgsConstructor
-public class UserService<ID, T extends User> {
+public class UserService {
 
-    protected final Repository<ID, T> repository;
-    private final List<? extends Repository<ID, ? extends User>> repositories;
+    private final UserRepository repository;
     private final PasswordGenerator passwordGenerator;
     private final UsernameGenerator usernameGenerator;
 
-    public T getById(ID id) {
-        log.debug("Getting user by id: {}", id);
+    @Log(value = "getting user by id %0", level = Level.DEBUG)
+    public User getById(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("User not found by id: {}", id);
-                    return new EntityNotFoundException(User.class, id);
-                });
+                .orElseThrow(() -> new EntityNotFoundException(User.class, id));
     }
 
-    public List<T> getAll() {
-        return repository.findAll().collect(Collectors.toList());
+    @Log(value = "getting user by username %0", level = Level.DEBUG)
+    public User getByUsername(String username) {
+        return repository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException(User.class, username));
     }
 
-    public T create(T user) {
-        log.info("Creating new user: {}", user);
-        user.setUsername(usernameGenerator.generate(user, getAllUsers()));
-        user.setPassword(passwordGenerator.generate());
-        var newUser = repository.create(user);
-        log.info("User created successfully: {}", newUser);
-        return newUser;
+    public void prepareUserForCreation(User user) {
+        var username = generateUsername(user);
+        var password = generatePassword();
+        user.setUsername(username);
+        user.setPassword(password);
+        user.setIsActive(false);
     }
 
-    public T update(ID id, T user) {
-        log.info("Updating user: {}", user);
-        var oldUser = this.getById(id);
+    public void applyUserUpdates(User user, UpdateUserDto dto) {
+        if (hasSameName(user, dto)) return;
 
-        if (!oldUser.getFirstName().equals(user.getFirstName()) ||
-                !oldUser.getLastName().equals(user.getLastName())) {
-            log.debug("User {}: regenerating username", id);
-            user.setUsername(usernameGenerator.generate(user, getAllUsers()));
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        var username = generateUsername(user);
+        user.setUsername(username);
+    }
+
+    @Authenticate
+    @Authorize(UserAuthorizer.Username.class)
+    @Log("toggling user activation for %0")
+    public User toggleActive(String username) {
+        var user = getByUsername(username);
+        user.setIsActive(!user.getIsActive());
+        return repository.save(user);
+    }
+
+    @Authenticate
+    @Authorize(UserAuthorizer.Username.class)
+    @Log("changing password for %0")
+    public User changePassword(String username, @Valid ChangePasswordDto dto) {
+        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+            throw new IllegalArgumentException("Passwords do not match");
         }
-
-        var updatedUser = repository.update(user);
-        log.info("User {} updated successfully", id);
-        return updatedUser;
+        var user = getByUsername(username);
+        if (!user.getPassword().equals(dto.getOldPassword())) {
+            throw new IllegalArgumentException("Invalid old password");
+        }
+        user.setPassword(dto.getNewPassword());
+        return repository.save(user);
     }
 
-    public void deleteById(ID id) {
-        log.info("Deleting user with id: {}", id);
-        repository.deleteById(id);
+    private boolean hasSameName(User oldUser, UpdateUserDto newUser) {
+        return oldUser.getFirstName().equals(newUser.getFirstName()) &&
+                oldUser.getLastName().equals(newUser.getLastName());
     }
 
-    private Stream<User> getAllUsers() {
-        return repositories.stream()
-                .map(Repository::findAll)
-                .reduce(Stream::concat)
-                .orElse(Stream.empty())
-                .map(user -> (User) user);
+    private String generateUsername(User user) {
+        var userStream = repository.findAll().stream();
+        return usernameGenerator.generate(user, userStream);
+    }
+
+    private String generatePassword() {
+        return passwordGenerator.generate();
     }
 
 }

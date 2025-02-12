@@ -1,59 +1,70 @@
 package dev.branow.services;
 
-import dev.branow.exceptions.EntityNotFoundException;
-import dev.branow.model.Trainee;
-import dev.branow.model.Trainer;
+import dev.branow.annotations.Authenticate;
+import dev.branow.annotations.Authorize;
+import dev.branow.annotations.Log;
+import dev.branow.auth.authorizers.TrainingAuthorizer;
+import dev.branow.dtos.CreateTrainingDto;
+import dev.branow.dtos.CriteriaTrainingTraineeDto;
+import dev.branow.dtos.CriteriaTrainingTrainerDto;
+import dev.branow.mappers.TrainingMapper;
 import dev.branow.model.Training;
-import dev.branow.repositories.TraineeRepository;
-import dev.branow.repositories.TrainerRepository;
 import dev.branow.repositories.TrainingRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Slf4j
 @Service
+@Validated
 @RequiredArgsConstructor
 public class TrainingService {
 
     private final TrainingRepository repository;
-    private final TraineeRepository traineeRepository;
-    private final TrainerRepository trainerRepository;
+    private final TrainingMapper mapper;
+    private final TraineeService traineeService;
+    private final TrainerService trainerService;
+    private final TrainingTypeService trainingTypeService;
 
-    public Training getById(Long id) {
-        log.debug("Getting training with id {}", id);
-        return repository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("Training with id {} not found", id);
-                    return new EntityNotFoundException(Training.class, id);
-                });
+    @Authenticate
+    @Log("creating training with %0")
+    public Training create(@Valid CreateTrainingDto dto) {
+        var type = trainingTypeService.getById(dto.getTypeId());
+        var trainee = traineeService.getById(dto.getTraineeId());
+        var trainer = trainerService.getById(dto.getTrainerId());
+        var training = mapper.toTraining(dto);
+        training.setTrainer(trainer);
+        training.setTrainee(trainee);
+        training.setType(type);
+        return repository.save(training);
     }
 
-    public List<Training> getAll() {
-        return repository.findAll().collect(Collectors.toList());
+    @Authenticate
+    @Authorize(TrainingAuthorizer.CriteriaTraineeDto.class)
+    @Log("getting all trainings for trainee %0")
+    public List<Training> getAllByTraineeUsernameCriteria(@Valid CriteriaTrainingTraineeDto dto) {
+        return repository.findAllByCriteria(
+                dto.getTraineeUsername(),
+                dto.getTrainerUsername(),
+                dto.getFrom(),
+                dto.getTo(),
+                dto.getTypeId()
+        );
     }
 
-    public Training create(Training training) {
-        log.info("Creating new training {}", training);
-
-        traineeRepository.findById(training.getTraineeId())
-                .orElseThrow(() -> {
-                    log.warn("Trainee with id {} not found", training.getTraineeId());
-                    return new EntityNotFoundException(Trainee.class, training.getTraineeId());
-                });
-
-        trainerRepository.findById(training.getTrainerId())
-                .orElseThrow(() -> {
-                    log.warn("Trainer with id {} not found", training.getTrainerId());
-                    return new EntityNotFoundException(Trainer.class, training.getTrainerId());
-                });
-
-        var newTraining = repository.create(training);
-        log.info("Training created successfully {}", newTraining);
-        return newTraining;
+    @Authenticate
+    @Authorize(TrainingAuthorizer.CriteriaTrainerDto.class)
+    @Log("getting all trainings for trainer %0")
+    public List<Training> getAllByTrainerUsernameCriteria(@Valid CriteriaTrainingTrainerDto dto) {
+        return repository.findAllByCriteria(
+                dto.getTraineeUsername(),
+                dto.getTrainerUsername(),
+                dto.getFrom(),
+                dto.getTo(),
+                null
+        );
     }
 
 }
