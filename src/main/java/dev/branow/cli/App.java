@@ -10,6 +10,8 @@ import java.util.Optional;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
+import static dev.branow.cli.Color.*;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -17,8 +19,7 @@ public class App {
 
     public static final String DASH = "-";
     private static final String EXIT_COMMAND = "exit";
-    private static final String HELP_COMMAND = "exit";
-    private static final String USAGE_PREFIX = "exit";
+    private static final String HELP_COMMAND = "help";
     private static final String NO_COMMAND_MESSAGE = "No command specified";
     private static final String UNKNOWN_COMMAND_MESSAGE = "Unknown command";
 
@@ -27,20 +28,21 @@ public class App {
     private boolean isRunning = true;
 
     public void start() {
+        var caret = colorize("> ", BLUE);
         try (Scanner scanner = new Scanner(System.in)) {
             System.out.println(help().execute());
-            System.out.print("> ");
+            System.out.print(caret);
 
             while (isRunning && scanner.hasNextLine()) {
                 processInput(scanner.nextLine());
-                System.out.print("> ");
+                System.out.print(caret);
             }
         }
     }
 
     private void processInput(String line) {
         if (line.isEmpty()) {
-            System.err.println(NO_COMMAND_MESSAGE);
+            System.out.println(colorize(NO_COMMAND_MESSAGE, RED));
             return;
         }
 
@@ -55,12 +57,13 @@ public class App {
             return;
         }
 
-        var command = findCommand(key).orElseGet(() -> {
-            System.err.println(UNKNOWN_COMMAND_MESSAGE + " : " + key);
-            return help();
-        });
+        var command = findCommand(key);
+        if (command.isEmpty()) {
+            System.out.println(colorize(UNKNOWN_COMMAND_MESSAGE + " : " + key, RED));
+            return;
+        }
 
-        executeCommand(command, args);
+        executeCommand(command.get(), args);
     }
 
     private Optional<Command> findCommand(String key) {
@@ -75,8 +78,7 @@ public class App {
     private void executeCommand(Command command, String[] args) {
         try {
             String response = command.execute(args);
-            String output = response.equals("@") ? USAGE_PREFIX + command.usage() : response;
-            System.out.println(output);
+            System.out.println(response);
         } catch (Exception e) {
             log.error("Error executing command: {}", e.getMessage());
         }
@@ -88,7 +90,9 @@ public class App {
                 .usage("help")
                 .executor(_ ->
                         commands.stream()
-                                .map(Command::usage)
+                                .map(command ->
+                                        colorize(command.key(), BLUE) + " - " + command.description() + ": " + colorize(command.usage(), YELLOW)
+                                )
                                 .collect(Collectors.joining("\n"))
                 )
                 .build();

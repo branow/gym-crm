@@ -1,106 +1,89 @@
 package dev.branow.cli;
 
+import dev.branow.dtos.CreateTrainingDto;
+import dev.branow.dtos.CriteriaTrainingTraineeDto;
+import dev.branow.dtos.CriteriaTrainingTrainerDto;
 import dev.branow.model.Training;
-import dev.branow.model.TrainingType;
 import dev.branow.services.TrainingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
+import java.time.LocalDate;
 import java.util.stream.Collectors;
-
-import static dev.branow.cli.App.DASH;
 
 @Component
 @RequiredArgsConstructor
 public class TrainingCommands {
 
-    private final TrainingService trainingService;
+    private final TrainingService service;
 
-    private static final Training DEF_TRAINING = Training.builder()
-            .trainingName("Cardio A5")
-            .trainingType(TrainingType.CARDIO)
-            .startTime(LocalDateTime.of(2024, 2, 5, 12, 0))
-            .duration(Duration.ofMinutes(90))
+    private static final CreateTrainingDto DEF_TRAINING = CreateTrainingDto.builder()
+            .name("Cardio A5")
+            .typeId(1L)
+            .date(LocalDate.of(2024, 2, 15))
+            .duration(90)
             .build();
 
-    @Bean("training-get")
-    public Command get() {
+    @Bean("getTrainingByTrainee")
+    public Command getAllByTrainee() {
         return Command.builder()
-                .key("tng-get")
-                .usage("tng-get")
-                .executor((_) -> {
-                    var trainees = trainingService.getAll();
-                    return trainees.stream()
+                .key("get-tng-tee")
+                .description("Get Trainings By Trainee's Username")
+                .usage("get-tng-tee <username!> -ter <trainer?> -from <from?> -to <to?> -type <typeId?> ")
+                .executor((args) -> {
+                    var parser = ArgsParser.of(args);
+                    var dto = new CriteriaTrainingTraineeDto();
+                    dto.setTraineeUsername(parser.parse(1, String.class).get());
+                    dto.setTrainerUsername(parser.parse("ter", String.class).orElse("Emma.Wilson", null));
+                    dto.setFrom(parser.parse("from", LocalDate.class).orElse(DEF_TRAINING.getDate(), null));
+                    dto.setTo(parser.parse("to", LocalDate.class).orElse(DEF_TRAINING.getDate(), null));
+                    dto.setTypeId(parser.parse("type", Long.class).orElse(DEF_TRAINING.getTypeId(), null));
+                    return service.getAllByTraineeUsernameCriteria(dto)
+                            .stream()
                             .map(Training::toString)
                             .collect(Collectors.joining("\n"));
                 })
                 .build();
     }
 
-    @Bean("training-update")
+    @Bean("getTrainingByTrainer")
+    public Command getAllByTrainer() {
+        return Command.builder()
+                .key("get-tng-ter")
+                .description("Get Trainings By Trainer's Username")
+                .usage("get-tng-ter <username!> -tee <trainee?> -from <from?> -to <to?> -type <typeId?> ")
+                .executor((args) -> {
+                    var parser = ArgsParser.of(args);
+                    var dto = new CriteriaTrainingTrainerDto();
+                    dto.setTrainerUsername(parser.parse(1, String.class).get());
+                    dto.setTraineeUsername(parser.parse("tee", String.class).orElse("John.Doe", null));
+                    dto.setFrom(parser.parse("from", LocalDate.class).orElse(DEF_TRAINING.getDate(), null));
+                    dto.setTo(parser.parse("to", LocalDate.class).orElse(DEF_TRAINING.getDate(), null));
+                    return service.getAllByTrainerUsernameCriteria(dto)
+                            .stream()
+                            .map(Training::toString)
+                            .collect(Collectors.joining("\n"));
+                })
+                .build();
+    }
+
+    @Bean("createTraining")
     public Command create() {
         return Command.builder()
-                .key("tng-crt")
-                .usage("tng-crt <trainee-id> <trainer-id> <name> <type> <time> <duration>")
+                .key("crt-tng")
+                .description("Create Training")
+                .usage("crt-tng <trainee-id!> <trainer-id!> <name> <type> <date> <duration>")
                 .executor((String[] args) -> {
-                    if (args.length < 6) {
-                        System.err.println("Not enough arguments: " + args.length);
-                        return "@";
-                    }
-                    var traineeId = -1L;
-                    try {
-                        traineeId = Long.parseLong(args[1]);
-                    } catch (NumberFormatException e) {
-                        System.err.println("Invalid trainee Id: " + args[1]);
-                        return "@";
-                    }
-
-                    var trainerId = -1L;
-                    try {
-                        trainerId = Long.parseLong(args[2]);
-                    } catch (NumberFormatException e) {
-                        System.err.println("Invalid trainer Id: " + args[2]);
-                        return "@";
-                    }
-
-                    var name = args[3].equals(DASH) ? DEF_TRAINING.getTrainingName() : args[3];
-                    TrainingType type;
-                    try {
-                        type = args[4].equals(DASH) ? DEF_TRAINING.getTrainingType() : TrainingType.valueOf(args[4]);
-                    } catch (IllegalArgumentException e) {
-                        System.err.println("Invalid type: " + args[4]);
-                        return "@";
-                    }
-
-                    LocalDateTime time;
-                    try {
-                        time = args[5].equals(DASH) ? DEF_TRAINING.getStartTime() : LocalDateTime.parse(args[5]);
-                    } catch (DateTimeParseException e) {
-                        System.err.println("Invalid time: " + args[5]);
-                        return "@";
-                    }
-
-                    Duration duration;
-                    try {
-                        duration = args[6].equals(DASH) ? DEF_TRAINING.getDuration() : Duration.parse(args[6]);
-                    } catch (DateTimeParseException e) {
-                        System.err.println("Invalid duration: " + args[6]);
-                        return "@";
-                    }
-
-                    var training = Training.builder()
-                            .traineeId(traineeId)
-                            .trainerId(trainerId)
-                            .trainingName(name)
-                            .trainingType(type)
-                            .startTime(time)
-                            .duration(duration)
-                            .build();
-                    return trainingService.create(training).toString();
+                    var parser = ArgsParser.of(args);
+                    var training = new CreateTrainingDto();
+                    training.setTraineeId(parser.parse(1, Long.class).get());
+                    training.setTrainerId(parser.parse(2, Long.class).get());
+                    training.setName(parser.parse(3, String.class).orDefault(DEF_TRAINING.getName()));
+                    training.setTypeId(parser.parse(4, Long.class).orDefault(DEF_TRAINING.getTypeId()));
+                    training.setDate(parser.parse(5, LocalDate.class).orDefault(DEF_TRAINING.getDate()));
+                    training.setDuration(parser.parse(6, Integer.class).orDefault(DEF_TRAINING.getDuration()));
+                    return service.create(training).toString();
                 })
                 .build();
     }
