@@ -1,27 +1,17 @@
 package dev.branow;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import org.springframework.context.annotation.Bean;
+import dev.branow.config.FlywayConfig;
+import dev.branow.config.PersistenceConfig;
+import dev.branow.config.SnakePhysicalNamingStrategy;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 @Configuration
-public class TestDBConfig {
-
-    @Bean
-    public MockDB mockDB() {
-        return MockDB.getInstance();
-    }
-
-    @Bean
-    public EntityManagerFactory entityManagerFactory(MockDB mockDB) {
-        mockDB.initialize();
-        return mockDB.connect();
-    }
-
-    @Bean
-    public EntityManager entityManager(EntityManagerFactory entityManagerFactory) {
-        return entityManagerFactory.createEntityManager();
-    }
-
-}
+@Import({
+        SnakePhysicalNamingStrategy.class,
+        PersistenceConfig.class,
+        FlywayConfig.class,
+})
+@SpringJUnitConfig
+public class TestDBConfig {}
