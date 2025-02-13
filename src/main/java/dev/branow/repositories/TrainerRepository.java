@@ -1,15 +1,14 @@
 package dev.branow.repositories;
 
 import dev.branow.model.Trainer;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.ListCrudRepository;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 
-public interface TrainerRepository extends ListCrudRepository<Trainer, Long> {
-    Optional<Trainer> findByUsername(String username);
+public interface TrainerRepository extends JpaRepository<Trainer, Long> {
+    Trainer getReferenceByUsername(String username);
 
     @Query("""
         SELECT DISTINCT ter FROM trainers ter

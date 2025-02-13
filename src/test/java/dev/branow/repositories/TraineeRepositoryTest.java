@@ -1,30 +1,21 @@
 package dev.branow.repositories;
 
-import dev.branow.MockDB;
+import dev.branow.DBTest;
 import dev.branow.model.Trainee;
+import dev.branow.model.Trainer;
 import dev.branow.model.Training;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
 import jakarta.transaction.Transactional;
+import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.transaction.PlatformTransactionManager;
 
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
-@SpringJUnitConfig(TraineeRepositoryTest.TestConfig.class)
-public class TraineeRepositoryTest {
+public class TraineeRepositoryTest extends DBTest {
 
     @Autowired
     private EntityManager manager;
-
     @Autowired
     private TraineeRepository repository;
 
@@ -37,32 +28,40 @@ public class TraineeRepositoryTest {
         trainingsIds.forEach(trainingId -> assertNull(manager.find(Training.class, trainingId)));
     }
 
+    @Test
+    @Transactional
+    public void testSave_withNewFavoriteTrainers_saveNewRelations() {
+        var trainee = manager.find(Trainee.class, 1L);
+        var trainer1 = manager.find(Trainer.class, 9L);
+        var trainer2 = manager.find(Trainer.class, 10L);
+        trainee.getTrainers().add(trainer1);
+        trainee.getTrainers().add(trainer2);
+        var trainerIds = trainee.getTrainers().stream().map(Trainer::getId).toList();
+        manager.flush();
+        var query = String.format("select trainer_id from trainee_favorite_trainers where trainee_id = %d", trainee.getId());
+        var actualTrainerIds = manager.createNativeQuery(query, Long.class).getResultList().stream().toList();
+        assertEquals(trainerIds, actualTrainerIds);
+    }
 
-    @Configuration
-    @EnableJpaRepositories(
-            basePackages = "dev.branow.repositories",
-            excludeFilters = @ComponentScan.Filter(
-                    type = FilterType.ASSIGNABLE_TYPE, value = TrainingRepository.class
-            )
-    )
-    public static class TestConfig {
+    @Test
+    @Transactional
+    public void testSave_withRepeatedFavoriteTrainers_throwsException() {
+        var trainee = manager.find(Trainee.class, 1L);
+        var trainer1 = manager.find(Trainer.class, 4L);
+        trainee.getTrainers().add(trainer1);
+        assertThrows(ConstraintViolationException.class, () -> manager.flush());
+    }
 
-        @Bean
-        public MockDB mockDB() {
-            return MockDB.getInstance();
-        }
-
-        @Bean
-        public EntityManagerFactory entityManagerFactory(MockDB mockDB) {
-            mockDB.initialize();
-            return mockDB.connect();
-        }
-
-        @Bean
-        public PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
-            return new JpaTransactionManager(entityManagerFactory);
-        }
-
+    @Test
+    @Transactional
+    public void testSave_withAbsentFavoriteTrainers_removeRelations() {
+        var trainee = manager.find(Trainee.class, 1L);
+        trainee.getTrainers().remove(1);
+        var trainerIds = trainee.getTrainers().stream().map(Trainer::getId).toList();
+        manager.flush();
+        var query = String.format("select trainer_id from trainee_favorite_trainers where trainee_id = %d", trainee.getId());
+        var actualTrainerIds = manager.createNativeQuery(query, Long.class).getResultList().stream().toList();
+        assertEquals(trainerIds, actualTrainerIds);
     }
 
 }
