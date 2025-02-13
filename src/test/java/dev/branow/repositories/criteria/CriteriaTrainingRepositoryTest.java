@@ -1,30 +1,25 @@
 package dev.branow.repositories.criteria;
 
-import dev.branow.TestDBConfig;
+import dev.branow.DBTest;
 import dev.branow.model.Training;
-import jakarta.persistence.EntityManager;
+import dev.branow.repositories.TrainingRepository;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import java.time.LocalDate;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static dev.branow.EntityManagerUtils.findAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringJUnitConfig(classes = { TestDBConfig.class, CriteriaTrainingRepository.class })
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class CriteriaTrainingRepositoryTest {
+@SpringJUnitConfig(CriteriaTrainingRepository.class)
+public class CriteriaTrainingRepositoryTest extends DBTest {
 
     @Autowired
-    private EntityManager manager;
-    @Autowired
-    private CriteriaTrainingRepository repository;
+    private TrainingRepository repository;
 
     @ParameterizedTest
     @MethodSource("provideTestFindAllByCriteria")
@@ -36,7 +31,7 @@ public class CriteriaTrainingRepositoryTest {
             LocalDate to,
             Long typeId
     ) {
-        var trainings = findAll(manager, Training.class);
+        var trainings = manager.findAll(Training.class);
 
         var expected = trainings.stream().filter(criteria).toList();
         var actual = repository.findAllByCriteria(traineeUsername, trainerUsername, from, to, typeId);
