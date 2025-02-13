@@ -1,5 +1,6 @@
 package dev.branow.auth;
 
+import dev.branow.annotations.Log;
 import dev.branow.exceptions.BadCredentialsException;
 import dev.branow.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ public class SimpleAuthenticationProvider implements AuthenticationProvider {
     private final UserRepository userRepository;
 
     @Override
+    @Log("authentication")
     public void authenticate(Credentials credentials) {
         authenticationContext.setCredentials(credentials);
 
