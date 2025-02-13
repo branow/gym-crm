@@ -24,8 +24,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import java.util.Comparator;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @SpringJUnitConfig({
@@ -70,15 +69,6 @@ public class TrainerServiceTest extends DBTest {
         assertEquals(expected, actual);
     }
 
-//    @Test
-    public void testGetById_withPresentTrainer_returnTrainer() {
-        var id = 1L;
-        var trainee = manager.find(Trainer.class, id);
-        var traineeDto = mapper.toTrainerDto(trainee);
-        var actual = service.getById(id);
-        assertEquals(traineeDto, actual);
-    }
-
     @Test
     public void testGetById_withAbsentTrainer_throwException() {
         assertThrows(ObjectNotFoundException.class, () -> service.getById(-1L));
@@ -96,8 +86,7 @@ public class TrainerServiceTest extends DBTest {
 
     @Test
     public void testGetByUsername_withAbsentTrainer_throwException() {
-        assertThrows(Exception.class, () -> service.getByUsername("xxxxx"));
-//        assertThrows(ObjectNotFoundException.class, () -> service.getByUsername("xxxxx"));
+        assertThrows(ObjectNotFoundException.class, () -> service.getByUsername("xxxxxxx"));
     }
 
     @Test
@@ -157,6 +146,7 @@ public class TrainerServiceTest extends DBTest {
 
         var actual = service.update(updateDto);
         var expected = mapper.toTrainerDto(oldTrainee);
+        assertNotNull(actual);
 //        assertEquals(expected, actual);
     }
 

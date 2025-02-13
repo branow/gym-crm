@@ -1,35 +1,17 @@
 package dev.branow.model;
 
-import dev.branow.MockDB;
-import dev.branow.TestDBConfig;
+import dev.branow.DBTest;
 import dev.branow.TestDataFactory;
-import jakarta.persistence.EntityManager;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.DataException;
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import java.nio.file.Path;
 import java.time.LocalDate;
 
-import static dev.branow.EntityManagerUtils.*;
 import static dev.branow.TestDataFactory.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringJUnitConfig(TestDBConfig.class)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestTraining {
-
-    @Autowired
-    private EntityManager manager;
-
-    @AfterEach
-    public void cleanUp() {
-        clean(manager);
-    }
+public class TestTraining extends DBTest {
 
     @Test
     public void testFind() {
@@ -55,11 +37,11 @@ public class TestTraining {
         var trainee = manager.find(Trainee.class, 1L);
         var trainer = manager.find(Trainer.class, 4L);
         var training = nextTraining(type, trainee, trainer);
-        var expectedId = lastId(manager, Training.class.getName(), "id") + 1;
+        var expectedId = manager.lastId(Training.class.getName(), "id") + 1;
         var expected = TestDataFactory.clone(training);
         expected.setId(expectedId);
 
-        persist(manager, training);
+        manager.persist(training);
         assertEquals(expectedId, training.getId());
         assertEquals(expected, training);
     }
@@ -72,7 +54,7 @@ public class TestTraining {
         var training = nextTraining(type, trainee, trainer);
         training.setName(null);
         assertThrows(ConstraintViolationException.class,
-                () -> persist(manager, training));
+                () -> manager.persist(training));
     }
 
     @Test
@@ -82,12 +64,12 @@ public class TestTraining {
         var trainer = manager.find(Trainer.class, 4L);
         var validTraining = nextTraining(type, trainee, trainer);
         validTraining.setName("a".repeat(100));
-        persist(manager, validTraining);
+        manager.persist(validTraining);
 
         var invalidTraining = nextTraining(type, trainee, trainer);
         invalidTraining.setName("a".repeat(101));
         assertThrows(DataException.class,
-                () -> persist(manager, invalidTraining));
+                () -> manager.persist(invalidTraining));
     }
 
     @Test
@@ -98,7 +80,7 @@ public class TestTraining {
         var training = nextTraining(type, trainee, trainer);
         training.setDate(null);
         assertThrows(ConstraintViolationException.class,
-                () -> persist(manager, training));
+                () -> manager.persist(training));
     }
 
 
@@ -110,7 +92,7 @@ public class TestTraining {
         var training = nextTraining(type, trainee, trainer);
         training.setDuration(null);
         assertThrows(ConstraintViolationException.class,
-                () -> persist(manager, training));
+                () -> manager.persist(training));
     }
 
     @Test
@@ -121,7 +103,7 @@ public class TestTraining {
         var training = nextTraining(type, trainee, trainer);
         training.setDuration(-1);
         assertThrows(ConstraintViolationException.class,
-                () -> persist(manager, training));
+                () -> manager.persist(training));
     }
 
     @Test
@@ -132,7 +114,7 @@ public class TestTraining {
         var training = nextTraining(type, trainee, trainer);
         training.setDuration(0);
         assertThrows(ConstraintViolationException.class,
-                () -> persist(manager, training));
+                () -> manager.persist(training));
     }
 
     @Test
@@ -141,7 +123,7 @@ public class TestTraining {
         var trainer = manager.find(Trainer.class, 4L);
         var training = nextTraining(null, trainee, trainer);
         assertThrows(ConstraintViolationException.class,
-                () -> persist(manager, training));
+                () -> manager.persist(training));
     }
 
     @Test
@@ -150,7 +132,7 @@ public class TestTraining {
         var trainer = manager.find(Trainer.class, 4L);
         var training = nextTraining(type, null, trainer);
         assertThrows(ConstraintViolationException.class,
-                () -> persist(manager, training));
+                () -> manager.persist(training));
     }
 
     @Test
@@ -159,7 +141,7 @@ public class TestTraining {
         var trainee = manager.find(Trainee.class, 1L);
         var training = nextTraining(type, trainee, null);
         assertThrows(ConstraintViolationException.class,
-                () -> persist(manager, training));
+                () -> manager.persist(training));
     }
 
     @Test
@@ -169,7 +151,7 @@ public class TestTraining {
         var trainer = manager.find(Trainer.class, 4L);
         var training = nextTraining(type, trainee, trainer);
         assertThrows(ConstraintViolationException.class,
-                () -> persist(manager, training));
+                () -> manager.persist(training));
     }
 
     @Test
@@ -179,7 +161,7 @@ public class TestTraining {
         var trainer = manager.find(Trainer.class, 4L);
         var training = nextTraining(type, trainee, trainer);
         assertThrows(ConstraintViolationException.class,
-                () -> persist(manager, training));
+                () -> manager.persist(training));
     }
 
     @Test
@@ -189,7 +171,7 @@ public class TestTraining {
         var trainer = nextTrainer(type, null);
         var training = nextTraining(type, trainee, trainer);
         assertThrows(ConstraintViolationException.class,
-                () -> persist(manager, training));
+                () -> manager.persist(training));
     }
 
     @Test
@@ -198,7 +180,7 @@ public class TestTraining {
         var trainee = manager.find(Trainee.class, 1L);
         var trainer = manager.find(Trainer.class, 4L);
         var training = nextTraining(type, trainee, trainer);
-        persist(manager, training);
+        manager.persist(training);
         var id = training.getId();
 
         manager.remove(training);

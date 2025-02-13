@@ -77,7 +77,7 @@ public class AuthorizersTest {
     @Test
     public void testAuthorizeByCriteriaTrainerDto(@Autowired TrainingAuthorizer.CriteriaTrainerDto authorizer) {
         var resource = CriteriaTrainingTrainerDto.builder().trainerUsername("username").build();
-        when(userRepository.getByUsername(resource.getTraineeUsername())).thenReturn(user);
+        when(userRepository.getReferenceByUsername(resource.getTrainerUsername())).thenReturn(user);
         testAuthorize(authorizer, resource);
     }
 

@@ -1,34 +1,15 @@
 package dev.branow.model;
 
-import dev.branow.MockDB;
-import dev.branow.TestDBConfig;
+import dev.branow.DBTest;
 import dev.branow.TestDataFactory;
-import jakarta.persistence.EntityManager;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.DataException;
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import java.nio.file.Path;
-
-import static dev.branow.EntityManagerUtils.*;
 import static dev.branow.TestDataFactory.nextTrainingType;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringJUnitConfig(TestDBConfig.class)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestTrainingType {
-
-    @Autowired
-    private EntityManager manager;
-
-    @AfterEach
-    public void cleanUp() {
-        clean(manager);
-    }
+public class TestTrainingType extends DBTest {
 
     @Test
     public void testFind() {
@@ -44,11 +25,11 @@ public class TestTrainingType {
     @Order(1)
     public void testPersist_validTrainingType_persistTrainingType() {
         var type = nextTrainingType();
-        var expectedId = lastId(manager, TrainingType.class.getName(), "id") + 1;
+        var expectedId = manager.lastId(TrainingType.class.getName(), "id") + 1;
         var expected = TestDataFactory.clone(type);
         expected.setId(expectedId);
 
-        persist(manager, type);
+        manager.persist(type);
         assertEquals(expectedId, type.getId());
         assertEquals(expected, type);
     }
@@ -58,34 +39,34 @@ public class TestTrainingType {
         var type = nextTrainingType();
         type.setName(null);
         assertThrows(ConstraintViolationException.class,
-                () -> persist(manager, type));
+                () -> manager.persist(type));
     }
 
     @Test
     public void testPersist_withTooLongName_throwsException() {
         var validType = nextTrainingType();
         validType.setName("a".repeat(100));
-        persist(manager, validType);
+        manager.persist(validType);
 
         var invalidType = nextTrainingType();
         invalidType.setName("a".repeat(101));
         assertThrows(DataException.class,
-                () -> persist(manager, invalidType));
+                () -> manager.persist(invalidType));
     }
 
     @Test
     public void testRemove_noReference_removeTrainingType() {
         var type = nextTrainingType();
-        persist(manager, type);
+        manager.persist(type);
         assertNotNull(manager.find(TrainingType.class, type.getId()));
-        remove(manager, type);
+        manager.remove(type);
         assertNull(manager.find(TrainingType.class, type.getId()));
     }
 
     @Test
     public void testRemove_hasReference_throwsException() {
         var type = manager.find(TrainingType.class, 1L);
-        assertThrows(ConstraintViolationException.class, () -> remove(manager, type));
+        assertThrows(ConstraintViolationException.class, () -> manager.remove(type));
     }
 
 

@@ -23,29 +23,29 @@ public class SimpleUsernameGeneratorTest {
     private static Stream<Arguments> provideTestGenerate() {
         return Stream.of(
                 Arguments.of(
-                        User.builder().firstName("fn").lastName("ln").build(),
+                        User.builder().id(1L).firstName("fn").lastName("ln").build(),
                         Stream.of(),
                         "fn.ln"
                 ),
                 Arguments.of(
-                        User.builder().firstName("fn").lastName("ln").build(),
-                        Stream.of(User.builder().firstName("fn").lastName("ln").username("fn.ln").build()),
+                        User.builder().id(4L).firstName("fn").lastName("ln").build(),
+                        Stream.of(User.builder().id(5L).firstName("fn").lastName("ln").username("fn.ln").build()),
                         "fn.ln1"
                 ),
                 Arguments.of(
-                        User.builder().firstName("fn").lastName("ln").build(),
+                        User.builder().id(1L).firstName("fn").lastName("ln").build(),
                         Stream.of(
-                                User.builder().firstName("fn").lastName("ln").username("fn.ln").build(),
-                                User.builder().firstName("fn").lastName("ln").username("fn.ln1").build(),
-                                User.builder().firstName("fn").lastName("ln").username("fn.ln2").build()
+                                User.builder().id(1L).firstName("fn").lastName("ln").username("fn.ln").build(),
+                                User.builder().id(3L).firstName("fn").lastName("ln").username("fn.ln1").build(),
+                                User.builder().id(4L).firstName("fn").lastName("ln").username("fn.ln2").build()
                         ),
                         "fn.ln3"
                 ),
                 Arguments.of(
-                        User.builder().firstName("fn").lastName("ln").build(),
+                        User.builder().id(1L).firstName("fn").lastName("ln").build(),
                         Stream.of(
-                                User.builder().firstName("fn").lastName("ln").username("fn.ln1").build(),
-                                User.builder().firstName("fn").lastName("ln").username("fn.ln10").build()
+                                User.builder().id(1L).firstName("fn").lastName("ln").username("fn.ln1").build(),
+                                User.builder().id(2L).firstName("fn").lastName("ln").username("fn.ln10").build()
                                 ),
                         "fn.ln11"
                 )

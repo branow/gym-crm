@@ -82,8 +82,7 @@ public class TraineeServiceTest extends DBTest {
 
     @Test
     public void testGetByUsername_withAbsentTrainee_throwException() {
-        assertThrows(Exception.class, () -> service.getByUsername("xxxxxx"));
-//        assertThrows(ObjectNotFoundException.class, () -> service.getByUsername("xxxxxx"));
+        assertThrows(ObjectNotFoundException.class, () -> service.getByUsername("xxxxxx"));
     }
 
     @Test
