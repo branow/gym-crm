@@ -80,7 +80,8 @@ public class App {
             String response = command.execute(args);
             System.out.println(response);
         } catch (Exception e) {
-            log.error("Error executing command: {}", e.getMessage());
+            var message = String.format("%s: %s", e.getClass().getName(), e.getMessage());
+            log.error("Error executing command: {}", message);
         }
     }
 

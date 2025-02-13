@@ -13,6 +13,7 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
 @EnableJpaRepositories(
@@ -21,6 +22,7 @@ import org.springframework.transaction.PlatformTransactionManager;
                 type = FilterType.ASSIGNABLE_TYPE, value = TrainingRepository.class
         )
 )
+@EnableTransactionManagement
 public class PersistenceConfig {
 
     @Bean

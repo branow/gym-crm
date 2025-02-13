@@ -16,6 +16,13 @@ import java.util.List;
 public class Trainee extends User {
     LocalDate dateOfBirth;
     String address;
-    @OneToMany(mappedBy = "trainee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "trainee", cascade = CascadeType.ALL)
     List<Training> trainings;
+    @ManyToMany
+    @JoinTable(
+            name = "trainee_favorite_trainers",
+            joinColumns = @JoinColumn(name = "trainee_id"),
+            inverseJoinColumns = @JoinColumn(name = "trainer_id")
+    )
+    List<Trainer> trainers;
 }

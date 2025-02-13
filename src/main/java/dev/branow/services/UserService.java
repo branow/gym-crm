@@ -6,12 +6,14 @@ import dev.branow.annotations.Log;
 import dev.branow.auth.authorizers.UserAuthorizer;
 import dev.branow.dtos.ChangePasswordDto;
 import dev.branow.dtos.UpdateUserDto;
-import dev.branow.exceptions.EntityNotFoundException;
+import dev.branow.dtos.UserDto;
 import dev.branow.log.Level;
+import dev.branow.mappers.UserMapper;
 import dev.branow.model.User;
 import dev.branow.repositories.UserRepository;
 import dev.branow.utils.PasswordGenerator;
 import dev.branow.utils.UsernameGenerator;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -26,19 +28,18 @@ import org.springframework.validation.annotation.Validated;
 public class UserService {
 
     private final UserRepository repository;
+    private final UserMapper mapper;
     private final PasswordGenerator passwordGenerator;
     private final UsernameGenerator usernameGenerator;
 
     @Log(value = "getting user by id %0", level = Level.DEBUG)
     public User getById(Long id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(User.class, id));
+        return repository.getReferenceById(id);
     }
 
     @Log(value = "getting user by username %0", level = Level.DEBUG)
     public User getByUsername(String username) {
-        return repository.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException(User.class, username));
+        return repository.getReferenceByUsername(username);
     }
 
     public void prepareUserForCreation(User user) {
@@ -58,28 +59,30 @@ public class UserService {
         user.setUsername(username);
     }
 
+    @Transactional
     @Authenticate
     @Authorize(UserAuthorizer.Username.class)
     @Log("toggling user activation for %0")
-    public User toggleActive(String username) {
+    public UserDto toggleActive(String username) {
         var user = getByUsername(username);
         user.setIsActive(!user.getIsActive());
-        return repository.save(user);
+        return mapper.toUserDto(user);
     }
 
+    @Transactional
     @Authenticate
     @Authorize(UserAuthorizer.Username.class)
     @Log("changing password for %0")
-    public User changePassword(String username, @Valid ChangePasswordDto dto) {
+    public UserDto changePassword(String username, @Valid ChangePasswordDto dto) {
         if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
             throw new IllegalArgumentException("Passwords do not match");
         }
-        var user = getByUsername(username);
+        var user = repository.getReferenceByUsername(username);
         if (!user.getPassword().equals(dto.getOldPassword())) {
             throw new IllegalArgumentException("Invalid old password");
         }
         user.setPassword(dto.getNewPassword());
-        return repository.save(user);
+        return mapper.toUserDto(user);
     }
 
     private boolean hasSameName(User oldUser, UpdateUserDto newUser) {

@@ -1,19 +1,25 @@
 package dev.branow.services;
 
-import dev.branow.dtos.CreateTrainingDto;
-import dev.branow.dtos.CriteriaTrainingTraineeDto;
-import dev.branow.dtos.CriteriaTrainingTrainerDto;
+import dev.branow.dtos.*;
 import dev.branow.mappers.TrainingMapper;
+import dev.branow.mappers.TrainingTypeMapper;
 import dev.branow.model.Trainee;
 import dev.branow.model.Trainer;
 import dev.branow.model.Training;
 import dev.branow.model.TrainingType;
+import dev.branow.repositories.TraineeRepository;
+import dev.branow.repositories.TrainerRepository;
 import dev.branow.repositories.TrainingRepository;
+import dev.branow.repositories.TrainingTypeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.testcontainers.shaded.org.checkerframework.checker.units.qual.A;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -21,26 +27,30 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
+@SpringJUnitConfig({
+        TrainingService.class,
+        TrainingMapper.class,
+        TrainingTypeMapper.class,
+        TrainerRepository.class,
+        TraineeRepository.class,
+})
 @ExtendWith(MockitoExtension.class)
 public class TrainingServiceTest {
 
-    @Mock
+    @MockitoBean
     private TrainingRepository repository;
-    @Mock
-    private TraineeService traineeService;
-    @Mock
-    private TrainerService trainerService;
-    @Mock
-    private TrainingTypeService trainingTypeService;
+    @MockitoBean
+    private TraineeRepository traineeRepository;
+    @MockitoBean
+    private TrainerRepository trainerRepository;
+    @MockitoBean
+    private TrainingTypeRepository trainingTypeRepository;
 
-    private final TrainingMapper mapper = new TrainingMapper();
+    @Autowired
+    private TrainingMapper mapper;
+    @Autowired
     private TrainingService service;
 
-    @BeforeEach
-    void setUp() {
-        service = new TrainingService(repository, mapper, traineeService,
-                trainerService, trainingTypeService);
-    }
 
     @Test
     public void testCreate() {
@@ -67,13 +77,14 @@ public class TrainingServiceTest {
         training.setTrainee(trainee);
         training.setType(type);
 
-        when(trainingTypeService.getById(type.getId())).thenReturn(type);
-        when(trainerService.getById(trainer.getId())).thenReturn(trainer);
-        when(traineeService.getById(trainee.getId())).thenReturn(trainee);
+        when(trainingTypeRepository.getReferenceById(type.getId())).thenReturn(type);
+        when(trainerRepository.getReferenceById(trainer.getId())).thenReturn(trainer);
+        when(traineeRepository.getReferenceById(trainee.getId())).thenReturn(trainee);
         when(repository.save(training)).thenReturn(training);
 
         var actual = service.create(createDto);
-        assertEquals(training, actual);
+        var expected = mapper.toTrainingDto(training);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -99,7 +110,8 @@ public class TrainingServiceTest {
         ).thenReturn(trainings);
 
         var actual = service.getAllByTraineeUsernameCriteria(dto);
-        assertEquals(trainings, actual);
+        var expected = trainings.stream().map(mapper::toTrainingDto).toList();
+        assertEquals(expected, actual);
     }
 
 
@@ -125,15 +137,9 @@ public class TrainingServiceTest {
         ).thenReturn(trainings);
 
         var actual = service.getAllByTrainerUsernameCriteria(dto);
-        assertEquals(trainings, actual);
+        var expected = trainings.stream().map(mapper::toTrainingDto).toList();
+        assertEquals(expected, actual);
     }
-
-
-
-
-
-
-
 
 
 }

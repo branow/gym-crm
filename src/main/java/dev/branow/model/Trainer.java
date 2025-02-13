@@ -17,6 +17,6 @@ import java.util.List;
 public class Trainer extends User {
     @ManyToOne @JoinColumn(name = "specialization", referencedColumnName = "id")
     TrainingType specialization;
-    @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL)
     List<Training> trainings;
 }

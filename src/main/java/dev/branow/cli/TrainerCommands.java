@@ -1,8 +1,8 @@
 package dev.branow.cli;
 
 import dev.branow.dtos.CreateTrainerDto;
+import dev.branow.dtos.TrainerDto;
 import dev.branow.dtos.UpdateTrainerDto;
-import dev.branow.model.Trainer;
 import dev.branow.services.TrainerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -48,7 +48,7 @@ public class TrainerCommands {
                     var parser = ArgsParser.of(args);
                     var username = parser.parse(1, String.class).get();
                     return trainerService.getAllNotAssignedOnTraineeByTraineeUsername(username).stream()
-                            .map(Trainer::toString)
+                            .map(TrainerDto::toString)
                             .collect(Collectors.joining("\n"));
                 })
                 .build();

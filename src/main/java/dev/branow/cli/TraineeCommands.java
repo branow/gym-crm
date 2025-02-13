@@ -89,4 +89,34 @@ public class TraineeCommands {
                 })
                 .build();
     }
+
+    @Bean("addFavoriteTrainer")
+    public Command addFavoriteTrainer() {
+        return Command.builder()
+                .key("add-fav-ter")
+                .description("Add Favorite Trainer")
+                .usage("add-fav-ter <trainee-username!> <trainer-username!>")
+                .executor((String[] args) -> {
+                    var parser = ArgsParser.of(args);
+                    var trainee = parser.parse(1, String.class).get();
+                    var trainer = parser.parse(2, String.class).get();
+                    return traineeService.addFavoriteTrainer(trainee, trainer).toString();
+                })
+                .build();
+    }
+
+    @Bean("deleteFavoriteTrainer")
+    public Command deleteFavoriteTrainer() {
+        return Command.builder()
+                .key("del-fav-ter")
+                .description("Delete Favorite Trainer")
+                .usage("del-fav-ter <trainee-username!> <trainer-username!>")
+                .executor((String[] args) -> {
+                    var parser = ArgsParser.of(args);
+                    var trainee = parser.parse(1, String.class).get();
+                    var trainer = parser.parse(2, String.class).get();
+                    return traineeService.deleteFavoriteTrainer(trainee, trainer).toString();
+                })
+                .build();
+    }
 }

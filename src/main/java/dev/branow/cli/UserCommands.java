@@ -21,8 +21,7 @@ public class UserCommands {
                 .executor((args) -> {
                     var parser = ArgsParser.of(args);
                     var username = parser.parse(1, String.class).get();
-                    service.toggleActive(username);
-                    return "";
+                    return service.toggleActive(username).toString();
                 })
                 .build();
     }

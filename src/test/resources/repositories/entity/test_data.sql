@@ -42,3 +42,17 @@ insert into trainings (trainee_id, trainer_id, name, type_id, date, duration) va
 (3, 4, 'Upper Body Strength', 1, '2024-02-17', 45), -- Bob with Emma
 (7, 10, 'One-on-One Coaching', 5, '2024-02-18', 60), -- Daniel with Liam
 (8, 9, 'High-Intensity CrossFit', 4, '2024-02-19', 70); -- Olivia with Ethan
+
+truncate table trainee_favorite_trainers;
+insert into trainee_favorite_trainers (trainee_id, trainer_id) values
+(1, 4),
+(1, 5),
+(1, 6),
+(2, 5),
+(2, 9),
+(3, 6),
+(3, 10),
+(7, 4),
+(7, 10),
+(8, 5),
+(8, 9);

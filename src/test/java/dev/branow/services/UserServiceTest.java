@@ -3,7 +3,7 @@ package dev.branow.services;
 import dev.branow.config.ValidationConfig;
 import dev.branow.dtos.ChangePasswordDto;
 import dev.branow.dtos.UpdateUserDto;
-import dev.branow.exceptions.EntityNotFoundException;
+import dev.branow.mappers.UserMapper;
 import dev.branow.model.User;
 import dev.branow.repositories.UserRepository;
 import dev.branow.utils.PasswordGenerator;
@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static dev.branow.services.ValidationTest.testValidation;
@@ -27,7 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-@SpringJUnitConfig({ ValidationConfig.class, UserService.class })
+@SpringJUnitConfig({ ValidationConfig.class, UserService.class, UserMapper.class })
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
 
@@ -39,38 +38,26 @@ public class UserServiceTest {
     private UsernameGenerator usernameGenerator;
 
     @Autowired
+    private UserMapper mapper;
+    @Autowired
     private UserService service;
 
     @Test
     public void testGetById_withPresentUser_returnUser() {
         var id = 123L;
         var user = User.builder().id(id).build();
-        when(repository.findById(id)).thenReturn(Optional.of(user));
+        when(repository.getReferenceById(id)).thenReturn(user);
         var actual = service.getById(id);
         assertEquals(user, actual);
-    }
-
-    @Test
-    public void testGetById_withAbsentUser_throwException() {
-        var id = 123L;
-        when(repository.findById(id)).thenReturn(Optional.empty());
-        assertThrows(EntityNotFoundException.class, () -> service.getById(id));
     }
 
     @Test
     public void testGetByUsername_withPresentUser_returnUser() {
         var username = "Bob.Doe";
         var user = User.builder().username(username).build();
-        when(repository.findByUsername(username)).thenReturn(Optional.of(user));
+        when(repository.getReferenceByUsername(username)).thenReturn(user);
         var actual = service.getByUsername(username);
         assertEquals(user, actual);
-    }
-
-    @Test
-    public void testGetByUsername_withAbsentUser_throwException() {
-        var username = "Bob.Doe";
-        when(repository.findByUsername(username)).thenReturn(Optional.empty());
-        assertThrows(EntityNotFoundException.class, () -> service.getByUsername(username));
     }
 
     @Test
@@ -136,11 +123,11 @@ public class UserServiceTest {
                 .isActive(true)
                 .build();
 
-        when(repository.findByUsername(expected.getUsername())).thenReturn(Optional.of(foundUser));
+        when(repository.getReferenceByUsername(expected.getUsername())).thenReturn(foundUser);
         when(repository.save(expected)).thenReturn(expected);
 
         var actual = service.toggleActive(expected.getUsername());
-        assertEquals(expected, actual);
+        assertEquals(mapper.toUserDto(expected), actual);
     }
 
     @ParameterizedTest
@@ -148,7 +135,7 @@ public class UserServiceTest {
     public void testChangePassword_ChangePasswordDtoValidation(ChangePasswordDto dto, boolean isValid) {
         var username = "username";
         var user = User.builder().password(dto.getOldPassword()).build();
-        when(repository.findByUsername(username)).thenReturn(Optional.of(user));
+        when(repository.getReferenceByUsername(username)).thenReturn(user);
         testValidation(isValid, () -> service.changePassword(username, dto));
     }
 
@@ -184,7 +171,7 @@ public class UserServiceTest {
                 .confirmPassword("password2")
                 .build();
 
-        when(repository.findByUsername(username)).thenReturn(Optional.of(user));
+        when(repository.getReferenceByUsername(username)).thenReturn(user);
 
         assertThrows(IllegalArgumentException.class, () -> service.changePassword(username, passwords));
     }
@@ -205,11 +192,11 @@ public class UserServiceTest {
                 .confirmPassword(expected.getPassword())
                 .build();
 
-        when(repository.findByUsername(expected.getUsername())).thenReturn(Optional.of(oldUser));
+        when(repository.getReferenceByUsername(expected.getUsername())).thenReturn(oldUser);
         when(repository.save(expected)).thenReturn(expected);
 
         var actual = service.changePassword(expected.getUsername(), passwords);
-        assertEquals(expected, actual);
+        assertEquals(mapper.toUserDto(expected), actual);
     }
 
 }

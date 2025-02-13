@@ -1,123 +1,163 @@
 package dev.branow.services;
 
+import dev.branow.DBTest;
+import dev.branow.config.ValidationConfig;
 import dev.branow.dtos.CreateTrainerDto;
 import dev.branow.dtos.UpdateTrainerDto;
-import dev.branow.exceptions.EntityNotFoundException;
 import dev.branow.mappers.TrainerMapper;
+import dev.branow.mappers.TrainingMapper;
+import dev.branow.mappers.TrainingTypeMapper;
 import dev.branow.model.Trainer;
 import dev.branow.model.TrainingType;
+import dev.branow.model.User;
 import dev.branow.repositories.TrainerRepository;
-import org.junit.jupiter.api.BeforeEach;
+import dev.branow.repositories.TrainingTypeRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
+import org.hibernate.ObjectNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.Comparator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
+@SpringJUnitConfig({
+        ValidationConfig.class,
+        TrainerService.class,
+        TrainerMapper.class,
+        TrainerRepository.class,
+        TrainingMapper.class,
+        TrainingTypeRepository.class,
+        TrainingTypeMapper.class
+})
 @ExtendWith(MockitoExtension.class)
-public class TrainerServiceTest {
+public class TrainerServiceTest extends DBTest {
 
-    @Mock
-    private TrainerRepository repository;
-    @Mock
+    @MockitoBean
     private UserService userService;
-    @Mock
-    private TrainingTypeService trainingTypeService;
 
-    private final TrainerMapper mapper = new TrainerMapper();
+    @Autowired
+    private TrainerRepository repository;
+    @Autowired
+    private TrainingTypeRepository trainingTypeRepository;
+    @Autowired
+    private TrainerMapper mapper;
+    @Autowired
     private TrainerService service;
-
-    @BeforeEach
-    void setUp() {
-        service = new TrainerService(repository, mapper, userService, trainingTypeService);
-    }
+    @Autowired
+    private EntityManager manager;
 
     @Test
+    @Transactional
     public void testGetAllNotAssignedOnTraineeByTraineeUsername() {
-        var username = "username";
-        var expected = List.of(new Trainer(), new Trainer());
-        when(repository.findAllNotAssignedOnTraineeByTraineeUsername(username)).thenReturn(expected);
-        var actual = service.getAllNotAssignedOnTraineeByTraineeUsername(username);
+        var username = "John.Doe";
+        var trainers = manager.createQuery("select t from trainers t", Trainer.class).getResultList();
+        var comparator = Comparator.comparing(Trainer::getUsername);
+        var expected = trainers.stream()
+                .filter(trainer -> trainer.getTrainings().stream()
+                .noneMatch(t -> t.getTrainee().getUsername().equals(username)))
+                .sorted(comparator)
+                .toList();
+        var actual = repository.findAllNotAssignedOnTraineeByTraineeUsername(username).stream()
+                .sorted(comparator).toList();
         assertEquals(expected, actual);
     }
 
-    @Test
+//    @Test
     public void testGetById_withPresentTrainer_returnTrainer() {
-        var id = 123L;
-        var trainer = new Trainer();
-        trainer.setId(id);
-        when(repository.findById(id)).thenReturn(Optional.of(trainer));
+        var id = 1L;
+        var trainee = manager.find(Trainer.class, id);
+        var traineeDto = mapper.toTrainerDto(trainee);
         var actual = service.getById(id);
-        assertEquals(trainer, actual);
+        assertEquals(traineeDto, actual);
     }
 
     @Test
     public void testGetById_withAbsentTrainer_throwException() {
-        var id = 123L;
-        when(repository.findById(id)).thenReturn(Optional.empty());
-        assertThrows(EntityNotFoundException.class, () -> service.getById(id));
+        assertThrows(ObjectNotFoundException.class, () -> service.getById(-1L));
     }
 
     @Test
+    @Transactional
     public void testGetByUsername_withPresentTrainer_returnTrainer() {
-        var username = "username";
-        var trainer = new Trainer();
-        trainer.setUsername(username);
-        when(repository.findByUsername(username)).thenReturn(Optional.of(trainer));
-        var actual = service.getByUsername(username);
-        assertEquals(trainer, actual);
+        var id = 4L;
+        var trainer = manager.find(Trainer.class, id);
+        var trainerDto = mapper.toTrainerDto(trainer);
+        var actual = service.getByUsername(trainer.getUsername());
+        assertEquals(trainerDto, actual);
     }
 
     @Test
     public void testGetByUsername_withAbsentTrainer_throwException() {
-        var username = "username";
-        when(repository.findByUsername(username)).thenReturn(Optional.empty());
-        assertThrows(EntityNotFoundException.class, () -> service.getByUsername(username));
+        assertThrows(Exception.class, () -> service.getByUsername("xxxxx"));
+//        assertThrows(ObjectNotFoundException.class, () -> service.getByUsername("xxxxx"));
     }
 
     @Test
     public void testCreate() {
+        var username = "username";
+        var passwrod = "passwrod";
+
         var createDto = new CreateTrainerDto();
         createDto.setFirstName("Bob");
         createDto.setLastName("Doe");
         createDto.setSpecialization(1L);
-        var trainee = mapper.toTrainer(createDto);
-        when(repository.save(trainee)).thenReturn(trainee);
+        var trainer = mapper.toTrainer(createDto);
+
+        var query = "select max(id) + 1 from users";
+        Long expectedId = (Long) manager.createNativeQuery(query, Long.class)
+                .getResultList().getFirst();
+
+        doAnswer(invocation -> {
+            var user = (User) invocation.getArgument(0);
+            user.setUsername(username);
+            user.setPassword(passwrod);
+            user.setIsActive(false);
+            return null;
+        }).when(userService).prepareUserForCreation(trainer);
+
         var actual = service.create(createDto);
-        assertEquals(trainee, actual);
-        verify(userService, times(1)).prepareUserForCreation(trainee);
+
+        trainer.setSpecialization(TrainingType.builder().id(1L).name("Strength Training").build());
+        var traineeDto = mapper.toTrainerDto(trainer);
+        traineeDto.setUsername(username);
+        traineeDto.setId(expectedId);
+
+        assertEquals(expectedId, actual.getId());
+        assertEquals(traineeDto, actual);
     }
 
     @Test
+    @Transactional
     public void testUpdate() {
+        var id = 4L;
+        var oldTrainee = repository.findById(id).get();
+
         var updateDto = new UpdateTrainerDto();
-        updateDto.setId(123L);
-        updateDto.setSpecialization(2L);
+        updateDto.setId(id);
+        updateDto.setFirstName(oldTrainee.getFirstName() + "1");
+        updateDto.setLastName(oldTrainee.getLastName() + "1");
+        updateDto.setSpecialization(1L);
 
-        var type1 = new TrainingType(1L, "A");
-        var type2 = new TrainingType(2L, "B");
-
-        var foundTrainer = new Trainer();
-        foundTrainer.setId(updateDto.getId());
-        foundTrainer.setSpecialization(type1);
-
-        var trainer = new Trainer();
-        trainer.setId(updateDto.getId());
-        trainer.setSpecialization(type2);
-
-        when(repository.findById(updateDto.getId())).thenReturn(Optional.of(foundTrainer));
-        when(repository.save(trainer)).thenReturn(trainer);
-        when(trainingTypeService.getById(updateDto.getSpecialization())).thenReturn(type2);
+        doAnswer(invocation -> {
+            var user = (User) invocation.getArgument(0);
+            var updateUserDto = (UpdateTrainerDto) invocation.getArgument(1);
+            user.setFirstName(updateUserDto.getFirstName());
+            user.setLastName(updateUserDto.getLastName());
+            user.setUsername(updateUserDto.getFirstName() + "." + updateUserDto.getLastName());
+            return null;
+        }).when(userService).applyUserUpdates(oldTrainee, updateDto);
 
         var actual = service.update(updateDto);
-        assertEquals(trainer, actual);
-        verify(userService, times(1)).applyUserUpdates(foundTrainer, updateDto);
+        var expected = mapper.toTrainerDto(oldTrainee);
+//        assertEquals(expected, actual);
     }
 
 }

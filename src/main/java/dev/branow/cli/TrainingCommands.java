@@ -3,7 +3,7 @@ package dev.branow.cli;
 import dev.branow.dtos.CreateTrainingDto;
 import dev.branow.dtos.CriteriaTrainingTraineeDto;
 import dev.branow.dtos.CriteriaTrainingTrainerDto;
-import dev.branow.model.Training;
+import dev.branow.dtos.TrainingDto;
 import dev.branow.services.TrainingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -41,7 +41,7 @@ public class TrainingCommands {
                     dto.setTypeId(parser.parse("type", Long.class).orElse(DEF_TRAINING.getTypeId(), null));
                     return service.getAllByTraineeUsernameCriteria(dto)
                             .stream()
-                            .map(Training::toString)
+                            .map(TrainingDto::toString)
                             .collect(Collectors.joining("\n"));
                 })
                 .build();
@@ -62,7 +62,7 @@ public class TrainingCommands {
                     dto.setTo(parser.parse("to", LocalDate.class).orElse(DEF_TRAINING.getDate(), null));
                     return service.getAllByTrainerUsernameCriteria(dto)
                             .stream()
-                            .map(Training::toString)
+                            .map(TrainingDto::toString)
                             .collect(Collectors.joining("\n"));
                 })
                 .build();
