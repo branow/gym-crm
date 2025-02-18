@@ -21,17 +21,16 @@ public class AuthenticationAspect {
 
     @Around("@annotation(authenticate)")
     public Object authenticate(ProceedingJoinPoint joinPoint, Authenticate authenticate) throws Throwable {
-        var thisMethodIsAuthenticator = false;
+        var isAuthenticator = !authenticationContext.isAuthenticated();
 
-        if (!authenticationContext.isAuthenticated()) {
-            thisMethodIsAuthenticator = true;
+        if (isAuthenticator) {
             authenticateUser();
         }
 
         try {
             return joinPoint.proceed();
         } finally {
-            if (thisMethodIsAuthenticator) {
+            if (isAuthenticator) {
                 authenticationContext.expire();
             }
         }

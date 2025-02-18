@@ -18,19 +18,14 @@ public class SimpleAuthenticationProvider implements AuthenticationProvider {
     public void authenticate(Credentials credentials) {
         authenticationContext.setCredentials(credentials);
 
-        var user = userRepository.findByUsername(credentials.getUsername())
-                .orElseThrow(this::handleAuthenticationFailure);
-
-        if (!user.getPassword().equals(credentials.getPassword())) {
-            throw handleAuthenticationFailure();
-        }
+        userRepository.findByUsername(credentials.getUsername())
+                .filter(u -> u.getPassword().equals(credentials.getPassword()))
+                .orElseThrow(() -> {
+                    authenticationContext.setAuthenticated(false);
+                    return new BadCredentialsException();
+                });
 
         authenticationContext.setAuthenticated(true);
-    }
-
-    private BadCredentialsException handleAuthenticationFailure() {
-        authenticationContext.setAuthenticated(false);
-        return new BadCredentialsException();
     }
 
 }

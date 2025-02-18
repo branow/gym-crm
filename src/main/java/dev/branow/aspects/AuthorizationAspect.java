@@ -12,6 +12,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Aspect
 @Component
 @RequiredArgsConstructor
@@ -23,7 +25,9 @@ public class AuthorizationAspect {
 
     @Around("@annotation(authorize)")
     public Object authorize(ProceedingJoinPoint joinPoint, Authorize authorize) throws Throwable {
-        ensureAuthenticated();
+        Optional.of(authenticationContext)
+                .filter(AuthenticationContext::isAuthenticated)
+                .orElseThrow(() -> new AccessDeniedException("User is not authenticated. Access Denied."));
 
         Object resource = extractResource(joinPoint.getArgs());
         var credentials = authenticationContext.getCredentials();
@@ -32,12 +36,6 @@ public class AuthorizationAspect {
         authorizer.authorize(resource, credentials);
 
         return joinPoint.proceed();
-    }
-
-    private void ensureAuthenticated() {
-        if (!authenticationContext.isAuthenticated()) {
-            throw new AccessDeniedException("User is not authenticated. Access Denied.");
-        }
     }
 
     private Object extractResource(Object[] args) {
@@ -50,6 +48,5 @@ public class AuthorizationAspect {
     private Authorizer<Object> getAuthorizer(Class<? extends Authorizer<?>> authorizerClass) {
         return (Authorizer<Object>) applicationContext.getBean(authorizerClass);
     }
-
 
 }
