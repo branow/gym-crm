@@ -15,6 +15,7 @@ public class TraineeDto {
     String firstName;
     String lastName;
     String username;
-    List<TrainingTitleDto> trainings;
-    List<String> favouriteTrainers;
+    String password;
+    List<TrainingDto> trainings;
+    List<TrainerDto> favouriteTrainers;
 }

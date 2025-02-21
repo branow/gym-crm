@@ -1,8 +1,5 @@
 package dev.branow.dtos;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -12,10 +9,8 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UpdateUserDto {
-    @NotNull
-    Long id;
-    @NotBlank @Size(min = 2, max = 45)
+    String username;
     String firstName;
-    @NotBlank @Size(min = 2, max = 45)
     String lastName;
+    Boolean isActive;
 }
