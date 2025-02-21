@@ -1,5 +1,8 @@
 package dev.branow.auth;
 
+import lombok.EqualsAndHashCode;
+
+@EqualsAndHashCode
 public class SimpleCredentials implements Credentials {
 
     private final String username;

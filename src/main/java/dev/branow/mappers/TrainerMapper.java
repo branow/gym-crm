@@ -1,8 +1,12 @@
 package dev.branow.mappers;
 
+import dev.branow.dtos.request.CreateTrainerRequest;
 import dev.branow.dtos.service.CreateTrainerDto;
 import dev.branow.dtos.service.UpdateTrainerDto;
+import dev.branow.dtos.request.UpdateTrainerRequest;
 import dev.branow.dtos.service.*;
+import dev.branow.dtos.response.TrainerResponse;
+import dev.branow.dtos.response.CredentialsResponse;
 import dev.branow.model.Trainer;
 import dev.branow.model.Training;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +25,55 @@ public class TrainerMapper {
     private final TrainingTypeMapper trainingTypeMapper;
     private final TrainingMapper trainingMapper;
 
+    public CreateTrainerDto toCreateTrainerDto(CreateTrainerRequest request) {
+        return CreateTrainerDto.builder()
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .specialization(request.getSpecialization())
+                .build();
+    }
+
+    public CriteriaTrainingTrainerDto toCriteriaTrainingTrainerDto(
+            String username, LocalDate from, LocalDate to, String trainee
+    ) {
+        return CriteriaTrainingTrainerDto.builder()
+                .trainerUsername(username)
+                .from(from)
+                .to(to)
+                .traineeUsername(trainee)
+                .build();
+    }
+
     public ShortTrainerDto toShortTrainerDto(Trainer trainer) {
         return traineeTrainerMapper.toShortTrainerDto(trainer);
+    }
+
+    public UpdateTrainerDto toUpdateTraineeDto(String username, UpdateTrainerRequest request) {
+        var trainer = new UpdateTrainerDto();
+        trainer.setUsername(username);
+        trainer.setFirstName(request.getFirstName());
+        trainer.setLastName(request.getLastName());
+        trainer.setIsActive(request.getIsActive());
+        trainer.setSpecialization(request.getSpecialization());
+        return trainer;
+    }
+
+    public TrainerResponse toTrainerResponse(TrainerDto dto) {
+        return TrainerResponse.builder()
+                .username(dto.getUsername())
+                .firstName(dto.getFirstName())
+                .lastName(dto.getLastName())
+                .specialization(dto.getSpecialization().getId())
+                .isActive(dto.getIsActive())
+                .trainees(dto.getTrainees())
+                .build();
+    }
+
+    public CredentialsResponse toCredentialsResponse(TrainerDto dto) {
+        return CredentialsResponse.builder()
+                .username(dto.getUsername())
+                .password(dto.getPassword())
+                .build();
     }
 
     public TrainerDto toTrainerDto(Trainer trainer) {
