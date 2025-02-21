@@ -27,7 +27,7 @@ public class AuthorizationAspect {
     public Object authorize(ProceedingJoinPoint joinPoint, Authorize authorize) throws Throwable {
         Optional.of(authenticationContext)
                 .filter(AuthenticationContext::isAuthenticated)
-                .orElseThrow(() -> new AccessDeniedException("User is not authenticated. Access Denied."));
+                .orElseThrow(() -> new AccessDeniedException("User is not authenticated."));
 
         Object resource = extractResource(joinPoint.getArgs());
         var credentials = authenticationContext.getCredentials();
