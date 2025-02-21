@@ -3,14 +3,14 @@ package dev.branow.dtos.service;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UpdateUserDto {
-    String username;
-    String firstName;
-    String lastName;
-    Boolean isActive;
+public class UpdateFavoriteTrainersDto {
+    String trainee;
+    List<String> trainers;
 }

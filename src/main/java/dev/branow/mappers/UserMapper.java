@@ -1,7 +1,6 @@
 package dev.branow.mappers;
 
-import dev.branow.dtos.UserDto;
-import dev.branow.model.User;
+import dev.branow.dtos.service.CredentialsDto;
 import org.springframework.stereotype.Component;
 
 @Component

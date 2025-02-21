@@ -5,12 +5,12 @@ import lombok.experimental.FieldDefaults;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UpdateUserDto {
+public class ShortTrainerDto {
     String username;
     String firstName;
     String lastName;
-    Boolean isActive;
+    Long specialization;
 }

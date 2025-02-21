@@ -8,9 +8,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UpdateUserDto {
+public class CredentialsDto {
     String username;
-    String firstName;
-    String lastName;
-    Boolean isActive;
+    String password;
 }

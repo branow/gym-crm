@@ -2,8 +2,10 @@ package dev.branow.services;
 
 import dev.branow.DBTest;
 import dev.branow.config.ValidationConfig;
-import dev.branow.dtos.CreateTrainerDto;
-import dev.branow.dtos.UpdateTrainerDto;
+import dev.branow.dtos.service.CreateTrainerDto;
+import dev.branow.dtos.service.ShortTrainerDto;
+import dev.branow.dtos.service.UpdateTrainerDto;
+import dev.branow.mappers.TraineeTrainerMapper;
 import dev.branow.mappers.TrainerMapper;
 import dev.branow.mappers.TrainingMapper;
 import dev.branow.mappers.TrainingTypeMapper;
@@ -28,13 +30,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @SpringJUnitConfig({
-        ValidationConfig.class,
         TrainerService.class,
         TrainerMapper.class,
         TrainerRepository.class,
         TrainingMapper.class,
         TrainingTypeRepository.class,
-        TrainingTypeMapper.class
+        TrainingTypeMapper.class,
+        TraineeTrainerMapper.class,
 })
 @ExtendWith(MockitoExtension.class)
 public class TrainerServiceTest extends DBTest {
@@ -55,23 +57,20 @@ public class TrainerServiceTest extends DBTest {
 
     @Test
     @Transactional
-    public void testGetAllNotAssignedOnTraineeByTraineeUsername() {
+    public void testGetAllNotAssignedByTraineeUsername() {
         var username = "John.Doe";
         var trainers = manager.createQuery("select t from trainers t", Trainer.class).getResultList();
-        var comparator = Comparator.comparing(Trainer::getUsername);
+        var comparator = Comparator.comparing(ShortTrainerDto::getUsername);
         var expected = trainers.stream()
                 .filter(trainer -> trainer.getTrainings().stream()
-                .noneMatch(t -> t.getTrainee().getUsername().equals(username)))
+                        .noneMatch(t -> t.getTrainee().getUsername().equals(username)))
+                .filter(User::getIsActive)
+                .map(mapper::toShortTrainerDto)
                 .sorted(comparator)
                 .toList();
-        var actual = repository.findAllNotAssignedOnTraineeByTraineeUsername(username).stream()
+        var actual = service.getAllNotAssignedByTraineeUsername(username).stream()
                 .sorted(comparator).toList();
         assertEquals(expected, actual);
-    }
-
-    @Test
-    public void testGetById_withAbsentTrainer_throwException() {
-        assertThrows(ObjectNotFoundException.class, () -> service.getById(-1L));
     }
 
     @Test
@@ -91,9 +90,6 @@ public class TrainerServiceTest extends DBTest {
 
     @Test
     public void testCreate() {
-        var username = "username";
-        var passwrod = "passwrod";
-
         var createDto = new CreateTrainerDto();
         createDto.setFirstName("Bob");
         createDto.setLastName("Doe");
@@ -104,10 +100,11 @@ public class TrainerServiceTest extends DBTest {
         Long expectedId = (Long) manager.createNativeQuery(query, Long.class)
                 .getResultList().getFirst();
 
+
         doAnswer(invocation -> {
             var user = (User) invocation.getArgument(0);
-            user.setUsername(username);
-            user.setPassword(passwrod);
+            user.setUsername("username");
+            user.setPassword("password");
             user.setIsActive(false);
             return null;
         }).when(userService).prepareUserForCreation(trainer);
@@ -116,8 +113,10 @@ public class TrainerServiceTest extends DBTest {
 
         trainer.setSpecialization(TrainingType.builder().id(1L).name("Strength Training").build());
         var traineeDto = mapper.toTrainerDto(trainer);
-        traineeDto.setUsername(username);
         traineeDto.setId(expectedId);
+        traineeDto.setUsername("username");
+        traineeDto.setPassword("password");
+        traineeDto.setIsActive(false);
 
         assertEquals(expectedId, actual.getId());
         assertEquals(traineeDto, actual);
@@ -130,24 +129,17 @@ public class TrainerServiceTest extends DBTest {
         var oldTrainee = repository.findById(id).get();
 
         var updateDto = new UpdateTrainerDto();
-        updateDto.setId(id);
+        updateDto.setUsername(oldTrainee.getUsername());
         updateDto.setFirstName(oldTrainee.getFirstName() + "1");
         updateDto.setLastName(oldTrainee.getLastName() + "1");
         updateDto.setSpecialization(1L);
 
-        doAnswer(invocation -> {
-            var user = (User) invocation.getArgument(0);
-            var updateUserDto = (UpdateTrainerDto) invocation.getArgument(1);
-            user.setFirstName(updateUserDto.getFirstName());
-            user.setLastName(updateUserDto.getLastName());
-            user.setUsername(updateUserDto.getFirstName() + "." + updateUserDto.getLastName());
-            return null;
-        }).when(userService).applyUserUpdates(oldTrainee, updateDto);
-
         var actual = service.update(updateDto);
         var expected = mapper.toTrainerDto(oldTrainee);
         assertNotNull(actual);
-//        assertEquals(expected, actual);
+        assertEquals(expected, actual);
+
+        verify(userService, times(1)).applyUserUpdates(oldTrainee, updateDto);
     }
 
 }

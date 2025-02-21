@@ -1,6 +1,5 @@
-package dev.branow.dtos;
+package dev.branow.dtos.service;
 
-import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -14,6 +13,5 @@ import java.time.LocalDate;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UpdateTraineeDto extends UpdateUserDto {
     LocalDate dateOfBirth;
-    @Size(max = 255)
     String address;
 }

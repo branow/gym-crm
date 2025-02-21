@@ -34,9 +34,9 @@ public class TraineeRepositoryTest extends DBTest {
         var trainee = manager.find(Trainee.class, 1L);
         var trainer1 = manager.find(Trainer.class, 9L);
         var trainer2 = manager.find(Trainer.class, 10L);
-        trainee.getTrainers().add(trainer1);
-        trainee.getTrainers().add(trainer2);
-        var trainerIds = trainee.getTrainers().stream().map(Trainer::getId).toList();
+        trainee.getFavoriteTrainers().add(trainer1);
+        trainee.getFavoriteTrainers().add(trainer2);
+        var trainerIds = trainee.getFavoriteTrainers().stream().map(Trainer::getId).toList();
         manager.flush();
         var query = String.format("select trainer_id from trainee_favorite_trainers where trainee_id = %d", trainee.getId());
         var actualTrainerIds = manager.createNativeQuery(query, Long.class).getResultList().stream().toList();
@@ -48,7 +48,7 @@ public class TraineeRepositoryTest extends DBTest {
     public void testSave_withRepeatedFavoriteTrainers_throwsException() {
         var trainee = manager.find(Trainee.class, 1L);
         var trainer1 = manager.find(Trainer.class, 4L);
-        trainee.getTrainers().add(trainer1);
+        trainee.getFavoriteTrainers().add(trainer1);
         assertThrows(ConstraintViolationException.class, () -> manager.flush());
     }
 
@@ -56,8 +56,8 @@ public class TraineeRepositoryTest extends DBTest {
     @Transactional
     public void testSave_withAbsentFavoriteTrainers_removeRelations() {
         var trainee = manager.find(Trainee.class, 1L);
-        trainee.getTrainers().remove(1);
-        var trainerIds = trainee.getTrainers().stream().map(Trainer::getId).toList();
+        trainee.getFavoriteTrainers().remove(1);
+        var trainerIds = trainee.getFavoriteTrainers().stream().map(Trainer::getId).toList();
         manager.flush();
         var query = String.format("select trainer_id from trainee_favorite_trainers where trainee_id = %d", trainee.getId());
         var actualTrainerIds = manager.createNativeQuery(query, Long.class).getResultList().stream().toList();

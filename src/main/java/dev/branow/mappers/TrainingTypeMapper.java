@@ -1,6 +1,6 @@
 package dev.branow.mappers;
 
-import dev.branow.dtos.TrainingTypeDto;
+import dev.branow.dtos.service.TrainingTypeDto;
 import dev.branow.model.TrainingType;
 import org.springframework.stereotype.Component;
 

@@ -1,6 +1,9 @@
 package dev.branow.services;
 
-import dev.branow.dtos.*;
+import dev.branow.DBTest;
+import dev.branow.dtos.service.CreateTrainingDto;
+import dev.branow.dtos.service.CriteriaTrainingTraineeDto;
+import dev.branow.dtos.service.CriteriaTrainingTrainerDto;
 import dev.branow.mappers.TrainingMapper;
 import dev.branow.mappers.TrainingTypeMapper;
 import dev.branow.model.Trainee;
@@ -11,6 +14,8 @@ import dev.branow.repositories.TraineeRepository;
 import dev.branow.repositories.TrainerRepository;
 import dev.branow.repositories.TrainingRepository;
 import dev.branow.repositories.TrainingTypeRepository;
+import dev.branow.repositories.criteria.CriteriaTrainingRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -26,58 +31,45 @@ import static org.mockito.Mockito.when;
 
 @SpringJUnitConfig({
         TrainingService.class,
+        CriteriaTrainingRepository.class,
         TrainingMapper.class,
         TrainingTypeMapper.class,
         TrainerRepository.class,
         TraineeRepository.class,
 })
 @ExtendWith(MockitoExtension.class)
-public class TrainingServiceTest {
+public class TrainingServiceTest extends DBTest {
 
-    @MockitoBean
-    private TrainingRepository repository;
-    @MockitoBean
-    private TraineeRepository traineeRepository;
-    @MockitoBean
-    private TrainerRepository trainerRepository;
-    @MockitoBean
-    private TrainingTypeRepository trainingTypeRepository;
-
+    @Autowired
+    private EntityManager manager;
     @Autowired
     private TrainingMapper mapper;
     @Autowired
+    private TrainingRepository repository;
+    @Autowired
     private TrainingService service;
-
 
     @Test
     public void testCreate() {
-        var trainer = new Trainer();
-        trainer.setId(12L);
-        trainer.setUsername("trainer");
+        var trainee = manager.find(Trainee.class, 1L);
+        var trainer = manager.find(Trainer.class, 4L);
 
-        var trainee = new Trainee();
-        trainee.setId(15L);
-        trainee.setUsername("trainee");
-
-        var type = new TrainingType();
-        type.setId(1L);
-        type.setName("strength");
+        var query = String.format("select max(t.id) from %s t", Training.class.getName());
+        var expectedId = manager.createQuery(query, Long.class).getSingleResult() + 1;
 
         var createDto = CreateTrainingDto.builder()
-                .traineeId(trainee.getId())
-                .trainerId(trainer.getId())
-                .typeId(type.getId())
+                .trainee(trainee.getUsername())
+                .trainer(trainer.getUsername())
+                .name("training name")
+                .date(LocalDate.now())
+                .duration(30)
                 .build();
 
         var training = mapper.toTraining(createDto);
+        training.setId(expectedId);
         training.setTrainer(trainer);
         training.setTrainee(trainee);
-        training.setType(type);
-
-        when(trainingTypeRepository.getReferenceById(type.getId())).thenReturn(type);
-        when(trainerRepository.getReferenceById(trainer.getId())).thenReturn(trainer);
-        when(traineeRepository.getReferenceById(trainee.getId())).thenReturn(trainee);
-        when(repository.save(training)).thenReturn(training);
+        training.setType(trainer.getSpecialization());
 
         var actual = service.create(createDto);
         var expected = mapper.toTrainingDto(training);
@@ -93,24 +85,19 @@ public class TrainingServiceTest {
                 .to(LocalDate.of(2031, 1, 2))
                 .typeId(1L)
                 .build();
-        var trainings = List.of(
-                Training.builder().name("strength").build(),
-                Training.builder().name("run").build()
-        );
 
-        when(repository.findAllByCriteria(
+        var actual = service.getAllByTraineeUsernameCriteria(dto);
+        var expected = repository.findAllByCriteria(
                 dto.getTraineeUsername(),
                 dto.getTrainerUsername(),
                 dto.getFrom(),
                 dto.getTo(),
                 dto.getTypeId())
-        ).thenReturn(trainings);
-
-        var actual = service.getAllByTraineeUsernameCriteria(dto);
-        var expected = trainings.stream().map(mapper::toTrainingDto).toList();
+                .stream()
+                .map(mapper::toTrainingDto)
+                .toList();
         assertEquals(expected, actual);
     }
-
 
     @Test
     public void getAllByTrainerUsernameCriteria() {
@@ -120,23 +107,18 @@ public class TrainingServiceTest {
                 .from(LocalDate.of(2011, 1, 2))
                 .to(LocalDate.of(2031, 1, 2))
                 .build();
-        var trainings = List.of(
-                Training.builder().name("strength").build(),
-                Training.builder().name("run").build()
-        );
 
-        when(repository.findAllByCriteria(
+        var actual = service.getAllByTrainerUsernameCriteria(dto);
+        var expected = repository.findAllByCriteria(
                 dto.getTraineeUsername(),
                 dto.getTrainerUsername(),
                 dto.getFrom(),
                 dto.getTo(),
                 null)
-        ).thenReturn(trainings);
-
-        var actual = service.getAllByTrainerUsernameCriteria(dto);
-        var expected = trainings.stream().map(mapper::toTrainingDto).toList();
+                .stream()
+                .map(mapper::toTrainingDto)
+                .toList();
         assertEquals(expected, actual);
     }
-
 
 }

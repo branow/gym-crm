@@ -1,8 +1,8 @@
 package dev.branow.mappers;
 
-import dev.branow.dtos.CreateTrainingDto;
-import dev.branow.dtos.TrainingDto;
-import dev.branow.dtos.TrainingTitleDto;
+import dev.branow.dtos.service.CreateTrainingDto;
+import dev.branow.dtos.service.TrainingDto;
+import dev.branow.dtos.service.TrainingTypeDto;
 import dev.branow.model.Training;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -27,13 +27,6 @@ public class TrainingMapper {
                 .trainee(trainee)
                 .trainer(trainer)
                 .duration(training.getDuration())
-                .build();
-    }
-
-    public TrainingTitleDto toTrainingTitleDto(Training training) {
-        return TrainingTitleDto.builder()
-                .id(training.getId())
-                .name(training.getName())
                 .build();
     }
 

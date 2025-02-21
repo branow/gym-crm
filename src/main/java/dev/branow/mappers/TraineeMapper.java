@@ -1,23 +1,23 @@
 package dev.branow.mappers;
 
-import dev.branow.dtos.CreateTraineeDto;
-import dev.branow.dtos.TraineeDto;
-import dev.branow.dtos.TrainingTitleDto;
+import dev.branow.dtos.service.*;
 import dev.branow.model.Trainee;
-import dev.branow.model.Trainer;
 import dev.branow.model.Training;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class TraineeMapper {
 
     private final TrainingMapper trainingMapper;
+    private final TraineeTrainerMapper traineeTrainerMapper;
 
     public TraineeDto toTraineeDto(Trainee trainee) {
         return TraineeDto.builder()
@@ -25,24 +25,35 @@ public class TraineeMapper {
                 .firstName(trainee.getFirstName())
                 .lastName(trainee.getLastName())
                 .username(trainee.getUsername())
-                .trainings(getTrainingTitleDtos(trainee))
-                .favouriteTrainers(getTrainerUsernames(trainee))
+                .password(trainee.getPassword())
+                .address(trainee.getAddress())
+                .dateOfBirth(trainee.getDateOfBirth())
+                .isActive(trainee.getIsActive())
+                .trainings(getTrainingDtos(trainee))
+                .favouriteTrainers(getShortFavoriteTrainersDtos(trainee))
+                .trainers(getShortTrainerDtos(trainee))
                 .build();
     }
-
-    private List<TrainingTitleDto> getTrainingTitleDtos(Trainee trainee) {
+    private List<ShortTrainerDto> getShortTrainerDtos(Trainee trainee) {
         return Optional.ofNullable(trainee.getTrainings())
-                .orElse(Collections.emptyList())
-                .stream()
-                .map(trainingMapper::toTrainingTitleDto)
-                .toList();
+                .orElse(Collections.emptyList()).stream()
+                .map(Training::getTrainer)
+                .map(traineeTrainerMapper::toShortTrainerDto)
+                .distinct()
+                .collect(Collectors.toList());
     }
 
-    private List<String> getTrainerUsernames(Trainee trainee) {
-        return Optional.ofNullable(trainee.getTrainers())
-                .orElse(Collections.emptyList())
-                .stream()
-                .map(Trainer::getUsername)
+    private List<ShortTrainerDto> getShortFavoriteTrainersDtos(Trainee trainee) {
+        return Optional.ofNullable(trainee.getFavoriteTrainers())
+                .orElse(Collections.emptyList()).stream()
+                .map(traineeTrainerMapper::toShortTrainerDto)
+                .collect(Collectors.toList());
+    }
+
+    private List<TrainingDto> getTrainingDtos(Trainee trainee) {
+        return Optional.ofNullable(trainee.getTrainings())
+                .orElse(Collections.emptyList()).stream()
+                .map(trainingMapper::toTrainingDto)
                 .toList();
     }
 

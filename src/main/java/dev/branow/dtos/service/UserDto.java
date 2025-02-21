@@ -1,4 +1,4 @@
-package dev.branow.dtos;
+package dev.branow.dtos.service;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;

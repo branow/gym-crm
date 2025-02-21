@@ -1,8 +1,9 @@
-package dev.branow.dtos;
+package dev.branow.dtos.service;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -16,6 +17,10 @@ public class TraineeDto {
     String lastName;
     String username;
     String password;
+    String address;
+    LocalDate dateOfBirth;
+    Boolean isActive;
     List<TrainingDto> trainings;
-    List<TrainerDto> favouriteTrainers;
+    List<ShortTrainerDto> favouriteTrainers;
+    List<ShortTrainerDto> trainers;
 }

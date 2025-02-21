@@ -1,4 +1,4 @@
-package dev.branow.dtos;
+package dev.branow.dtos.service;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -16,6 +16,8 @@ public class TrainerDto {
     String lastName;
     String username;
     String password;
+    Boolean isActive;
     TrainingTypeDto specialization;
     List<TrainingDto> trainings;
+    List<ShortTraineeDto> trainees;
 }

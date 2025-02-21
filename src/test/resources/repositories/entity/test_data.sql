@@ -1,13 +1,13 @@
 insert into users (first_name, last_name, username, password, is_active) values
 ('John', 'Doe', 'John.Doe', 'RM9AVLZpCK', true),
-('Alice', 'Smith', 'Alice.Smith', 'yh5TUyvHXz', true),
+('Alice', 'Smith', 'Alice.Smith', 'yh5TUyvHXz', false),
 ('Bob', 'Brown', 'Bob.Brown', 'CTPEeje8Jq', true),
 ('Emma', 'Wilson', 'Emma.Wilson', 'hZ29UTGBHk', true),
-('James', 'Taylor', 'James.Taylor', 'F5ZUtZmEA5', true),
+('James', 'Taylor', 'James.Taylor', 'F5ZUtZmEA5', false),
 ('Sophia', 'White', 'Sophia.White', 'BdescQ9GTr', true),
 ('Daniel', 'Martinez', 'Daniel.Martinez', 'pvr4FdufUz', true),
-('Olivia', 'Clark', 'Olivia.Clark', 'R4K6DxtFBf', true),
-('Ethan', 'Anderson', 'Ethan.Anderson', 'Tkq43QuyBh', true),
+('Olivia', 'Clark', 'Olivia.Clark', 'R4K6DxtFBf', false),
+('Ethan', 'Anderson', 'Ethan.Anderson', 'Tkq43QuyBh', false),
 ('Liam', 'Roberts', 'Liam.Roberts', 'ssREjuJqLv', true);
 
 insert into trainees (date_of_birth, address, user_id) values

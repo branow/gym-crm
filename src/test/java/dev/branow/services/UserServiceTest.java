@@ -1,202 +1,168 @@
 package dev.branow.services;
 
-import dev.branow.config.ValidationConfig;
-import dev.branow.dtos.ChangePasswordDto;
-import dev.branow.dtos.UpdateUserDto;
+import dev.branow.DBTest;
+import dev.branow.dtos.service.ChangePasswordDto;
+import dev.branow.dtos.service.CredentialsDto;
+import dev.branow.dtos.service.UpdateUserDto;
+import dev.branow.exceptions.BadCredentialsException;
 import dev.branow.mappers.UserMapper;
 import dev.branow.model.User;
-import dev.branow.repositories.UserRepository;
 import dev.branow.utils.PasswordGenerator;
 import dev.branow.utils.UsernameGenerator;
+import jakarta.persistence.EntityManager;
+import jakarta.validation.ValidationException;
+import org.hibernate.ObjectNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import java.util.stream.Stream;
+import java.util.function.Supplier;
 
-import static dev.branow.services.ValidationTest.testValidation;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-@SpringJUnitConfig({ ValidationConfig.class, UserService.class, UserMapper.class })
+@SpringJUnitConfig({
+        UserService.class,
+        UserMapper.class
+})
 @ExtendWith(MockitoExtension.class)
-public class UserServiceTest {
+public class UserServiceTest extends DBTest {
 
-    @MockitoBean
-    private UserRepository repository;
     @MockitoBean
     private PasswordGenerator passwordGenerator;
     @MockitoBean
     private UsernameGenerator usernameGenerator;
 
     @Autowired
+    private EntityManager manager;
+    @Autowired
     private UserMapper mapper;
     @Autowired
     private UserService service;
 
     @Test
-    public void testGetById_withPresentUser_returnUser() {
-        var id = 123L;
-        var user = User.builder().id(id).build();
-        when(repository.getReferenceById(id)).thenReturn(user);
-        var actual = service.getById(id);
-        assertEquals(user, actual);
+    public void testGetByUsername_withPresentUser_returnUser() {
+        var expectedUser = User.builder()
+                .id(1L)
+                .username("John.Doe")
+                .firstName("John")
+                .lastName("Doe")
+                .password("RM9AVLZpCK")
+                .isActive(true)
+                .build();
+        var actualUser = service.getByUsername(expectedUser.getUsername());
+        assertEquals(expectedUser.getId(), actualUser.getId());
+        assertEquals(expectedUser.getUsername(), actualUser.getUsername());
+        assertEquals(expectedUser.getFirstName(), actualUser.getFirstName());
+        assertEquals(expectedUser.getLastName(), actualUser.getLastName());
+        assertEquals(expectedUser.getPassword(), actualUser.getPassword());
+        assertEquals(expectedUser.getIsActive(), actualUser.getIsActive());
     }
 
     @Test
-    public void testGetByUsername_withPresentUser_returnUser() {
-        var username = "Bob.Doe";
-        var user = User.builder().username(username).build();
-        when(repository.getReferenceByUsername(username)).thenReturn(user);
-        var actual = service.getByUsername(username);
-        assertEquals(user, actual);
+    public void testMatchCredentials_matchCredentials_doesNotThrowException() {
+        var credentials = CredentialsDto.builder().username("John.Doe").password("RM9AVLZpCK").build();
+        assertDoesNotThrow(() -> service.matchCredentials(credentials));
+    }
+
+    @Test
+    public void testMatchCredentials_invalidUsername_throwException() {
+        var credentials = CredentialsDto.builder().username("John.Doe1").password("RM9AVLZpCK").build();
+        assertThrows(BadCredentialsException.class, () -> service.matchCredentials(credentials));
+    }
+
+    @Test
+    public void testMatchCredentials_invalidPassword_throwException() {
+        var credentials = CredentialsDto.builder().username("John.Doe").password("rM9AVLZpCK").build();
+        assertThrows(BadCredentialsException.class, () -> service.matchCredentials(credentials));
+    }
+
+    @Test
+    public void testGetByUsername_withAbsentUser_throwException() {
+        assertThrows(ObjectNotFoundException.class, () -> service.getByUsername("absentUsername"));
     }
 
     @Test
     public void testPrepareForCreation() {
         var user = User.builder()
-                .firstName("John")
+                .firstName("Bob")
                 .lastName("Doe")
                 .build();
         var username = "John.Doe";
         var password = "password";
-        var expected = User.builder()
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .username(username)
-                .password("password")
-                .isActive(false)
-                .build();
 
         when(usernameGenerator.generate(eq(user), any())).thenReturn(username);
         when(passwordGenerator.generate()).thenReturn(password);
 
         service.prepareUserForCreation(user);
-        assertEquals(expected, user);
+
+        assertEquals(username, user.getUsername());
+        assertEquals(password, user.getPassword());
+        assertFalse(user.getIsActive());
     }
 
     @Test
     public void testApplyUserUpdates() {
         var user = User.builder()
+                .id(1L)
                 .firstName("John")
                 .lastName("Doe")
                 .username("John.Doe")
-                .build();
-        var updateDto = UpdateUserDto.builder()
-                .firstName("Bob")
-                .lastName("Smith")
-                .build();
-        var updatedUser = User.builder()
-                .firstName(updateDto.getFirstName())
-                .lastName(updateDto.getLastName())
-                .username(user.getUsername())
-                .build();
-        var username = "Bob.Smith";
-        var expected = User.builder()
-                .firstName(updateDto.getFirstName())
-                .lastName(updateDto.getLastName())
-                .username(username)
+                .password("RM9AVLZpCK")
+                .isActive(true)
                 .build();
 
-        when(usernameGenerator.generate(eq(updatedUser), any())).thenReturn(username);
+        var dto = UpdateUserDto.builder()
+                .firstName("John1")
+                .lastName("Doe1")
+                .isActive(false)
+                .username("John.Doe2")
+                .build();
 
-        service.applyUserUpdates(user, updateDto);
-        assertEquals(expected, user);
+        service.applyUserUpdates(user, dto);
+
+        assertEquals(dto.getFirstName(), user.getFirstName());
+        assertEquals(dto.getLastName(), user.getLastName());
+        assertEquals(dto.getIsActive(), user.getIsActive());
+        assertEquals("John.Doe", user.getUsername());
+        assertEquals("RM9AVLZpCK", user.getPassword());
+        assertEquals(1L, user.getId());
     }
 
     @Test
     public void testToggleActive() {
-        var expected = User.builder()
-                .username("username")
-                .isActive(false)
-                .build();
-        var foundUser = User.builder()
-                .username(expected.getUsername())
-                .isActive(true)
-                .build();
+        var username = "John.Doe";
+        var query = String.format("select u.isActive from %s u where u.username = '%s'", User.class.getName(), username);
+        Supplier<Boolean> stateGetter = () -> manager.createQuery(query, Boolean.class).getSingleResult();
 
-        when(repository.getReferenceByUsername(expected.getUsername())).thenReturn(foundUser);
-        when(repository.save(expected)).thenReturn(expected);
+        var expectedState = !stateGetter.get();
+        service.toggleActive(username);
+        var actualState = stateGetter.get();
+        assertEquals(expectedState, actualState);
 
-        var actual = service.toggleActive(expected.getUsername());
-        assertEquals(mapper.toUserDto(expected), actual);
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideTestChangePassword_invalidPasswordDto_throwException")
-    public void testChangePassword_ChangePasswordDtoValidation(ChangePasswordDto dto, boolean isValid) {
-        var username = "username";
-        var user = User.builder().password(dto.getOldPassword()).build();
-        when(repository.getReferenceByUsername(username)).thenReturn(user);
-        testValidation(isValid, () -> service.changePassword(username, dto));
-    }
-
-    private static Stream<Arguments> provideTestChangePassword_invalidPasswordDto_throwException() {
-        return Stream.of(
-                Arguments.of(ChangePasswordDto.builder().oldPassword(null).newPassword("password").confirmPassword("password").build(), false),
-                Arguments.of(ChangePasswordDto.builder().oldPassword("").newPassword("password").confirmPassword("password").build(), true),
-                Arguments.of(ChangePasswordDto.builder().oldPassword("password").newPassword(null).confirmPassword("password").build(), false),
-                Arguments.of(ChangePasswordDto.builder().oldPassword("password").newPassword("password").confirmPassword(null).build(), false),
-                Arguments.of(ChangePasswordDto.builder().oldPassword("password").newPassword("1234567").confirmPassword("password").build(), false),
-                Arguments.of(ChangePasswordDto.builder().oldPassword("password").newPassword("password").confirmPassword("1234567").build(), false)
-        );
-    }
-
-
-    @Test
-    public void changePassword_withNotEqualPasswords_throwException() {
-        var passwords = ChangePasswordDto.builder()
-                .oldPassword("password0")
-                .newPassword("password1")
-                .confirmPassword("password2")
-                .build();
-        assertThrows(IllegalArgumentException.class, () -> service.changePassword("", passwords));
+        expectedState = !stateGetter.get();
+        service.toggleActive(username);
+        actualState = stateGetter.get();
+        assertEquals(expectedState, actualState);
     }
 
     @Test
     public void changePassword_withInvalidOldPassword_throwException() {
-        var username = "John.Smith";
-        var user = User.builder().username(username).password("password").build();
-        var passwords = ChangePasswordDto.builder()
-                .oldPassword("password1")
-                .newPassword("password2")
-                .confirmPassword("password2")
-                .build();
-
-        when(repository.getReferenceByUsername(username)).thenReturn(user);
-
-        assertThrows(IllegalArgumentException.class, () -> service.changePassword(username, passwords));
+        var password = new ChangePasswordDto("invalid password", "new password");
+        assertThrows(ValidationException.class, () -> service.changePassword("John.Doe", password));
     }
 
     @Test
-    public void changePassword_withEqualPasswords_changePassword() {
-        var expected = User.builder()
-                .username("Bob")
-                .password("new password")
-                .build();
-        var oldUser = User.builder()
-                .username(expected.getUsername())
-                .password("old password")
-                .build();
-        var passwords = ChangePasswordDto.builder()
-                .oldPassword(oldUser.getPassword())
-                .newPassword(expected.getPassword())
-                .confirmPassword(expected.getPassword())
-                .build();
-
-        when(repository.getReferenceByUsername(expected.getUsername())).thenReturn(oldUser);
-        when(repository.save(expected)).thenReturn(expected);
-
-        var actual = service.changePassword(expected.getUsername(), passwords);
-        assertEquals(mapper.toUserDto(expected), actual);
+    public void changePassword_withValidOldPassword_changePassword() {
+        var password = new ChangePasswordDto("RM9AVLZpCK", "new-password");
+        service.changePassword("John.Doe", password);
+        var actualPassword = manager.find(User.class, 1L).getPassword();
+        assertEquals(password.getNewPassword(), actualPassword);
     }
 
 }

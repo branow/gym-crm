@@ -1,4 +1,4 @@
-package dev.branow.dtos;
+package dev.branow.dtos.service;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

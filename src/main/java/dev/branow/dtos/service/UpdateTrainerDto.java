@@ -1,6 +1,5 @@
-package dev.branow.dtos;
+package dev.branow.dtos.service;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -11,6 +10,5 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UpdateTrainerDto extends UpdateUserDto {
-    @NotNull
     Long specialization;
 }

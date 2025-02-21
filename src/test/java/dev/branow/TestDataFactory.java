@@ -19,7 +19,7 @@ public class TestDataFactory {
                 .firstName("John")
                 .lastName("Doe")
                 .username("John.Doe" + nextInt())
-                .password("passwordd")
+                .password("password")
                 .isActive(true)
                 .build();
     }
@@ -64,6 +64,7 @@ public class TestDataFactory {
 
     public static TrainingType nextTrainingType() {
         return TrainingType.builder()
+                .id((long) nextInt())
                 .name("Strength Training" + nextInt())
                 .build();
     }

@@ -24,5 +24,5 @@ public class Trainee extends User {
             joinColumns = @JoinColumn(name = "trainee_id"),
             inverseJoinColumns = @JoinColumn(name = "trainer_id")
     )
-    List<Trainer> trainers;
+    List<Trainer> favoriteTrainers;
 }

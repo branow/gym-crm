@@ -1,29 +1,21 @@
 package dev.branow.services;
 
-import dev.branow.annotations.Authenticate;
-import dev.branow.annotations.Authorize;
 import dev.branow.annotations.Log;
-import dev.branow.auth.authorizers.TrainingAuthorizer;
-import dev.branow.dtos.CreateTrainingDto;
-import dev.branow.dtos.CriteriaTrainingTraineeDto;
-import dev.branow.dtos.CriteriaTrainingTrainerDto;
-import dev.branow.dtos.TrainingDto;
+import dev.branow.dtos.service.CreateTrainingDto;
+import dev.branow.dtos.service.CriteriaTrainingTraineeDto;
+import dev.branow.dtos.service.CriteriaTrainingTrainerDto;
+import dev.branow.dtos.service.TrainingDto;
 import dev.branow.mappers.TrainingMapper;
-import dev.branow.model.Training;
 import dev.branow.repositories.TraineeRepository;
 import dev.branow.repositories.TrainerRepository;
 import dev.branow.repositories.TrainingRepository;
-import dev.branow.repositories.TrainingTypeRepository;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 
 @Service
-@Validated
 @RequiredArgsConstructor
 public class TrainingService {
 
@@ -31,18 +23,15 @@ public class TrainingService {
     private final TrainingMapper mapper;
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
-    private final TrainingTypeRepository trainingTypeRepository;
 
     @Transactional
-    @Authenticate
     @Log("creating training with %0")
-    public TrainingDto create(@Valid CreateTrainingDto dto) {
-        var type = trainingTypeRepository.getReferenceById(dto.getTypeId());
-        var trainee = traineeRepository.getReferenceById(dto.getTraineeId());
-        var trainer = trainerRepository.getReferenceById(dto.getTrainerId());
+    public TrainingDto create(CreateTrainingDto dto) {
+        var trainee = traineeRepository.getReferenceByUsername(dto.getTrainee());
+        var trainer = trainerRepository.getReferenceByUsername(dto.getTrainer());
         var training = mapper.toTraining(dto);
 
-        training.setType(type);
+        training.setType(trainer.getSpecialization());
         training.setTrainee(trainee);
         training.setTrainer(trainer);
 
@@ -50,10 +39,8 @@ public class TrainingService {
         return mapper.toTrainingDto(savedTraining);
     }
 
-    @Authenticate
-    @Authorize(TrainingAuthorizer.CriteriaTraineeDto.class)
     @Log("getting all trainings for trainee %0")
-    public List<TrainingDto> getAllByTraineeUsernameCriteria(@Valid CriteriaTrainingTraineeDto dto) {
+    public List<TrainingDto> getAllByTraineeUsernameCriteria(CriteriaTrainingTraineeDto dto) {
         return repository.findAllByCriteria(
                 dto.getTraineeUsername(),
                 dto.getTrainerUsername(),
@@ -63,10 +50,8 @@ public class TrainingService {
         ).stream().map(mapper::toTrainingDto).toList();
     }
 
-    @Authenticate
-    @Authorize(TrainingAuthorizer.CriteriaTrainerDto.class)
     @Log("getting all trainings for trainer %0")
-    public List<TrainingDto> getAllByTrainerUsernameCriteria(@Valid CriteriaTrainingTrainerDto dto) {
+    public List<TrainingDto> getAllByTrainerUsernameCriteria(CriteriaTrainingTrainerDto dto) {
         return repository.findAllByCriteria(
                 dto.getTraineeUsername(),
                 dto.getTrainerUsername(),

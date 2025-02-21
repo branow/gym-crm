@@ -1,49 +1,44 @@
 package dev.branow.services;
 
-import dev.branow.annotations.Authenticate;
-import dev.branow.annotations.Authorize;
 import dev.branow.annotations.Log;
-import dev.branow.auth.authorizers.UserAuthorizer;
-import dev.branow.dtos.CreateTraineeDto;
-import dev.branow.dtos.TraineeDto;
-import dev.branow.dtos.UpdateTraineeDto;
+import dev.branow.dtos.service.CreateTraineeDto;
+import dev.branow.dtos.service.ShortTrainerDto;
+import dev.branow.dtos.service.TraineeDto;
+import dev.branow.dtos.service.UpdateFavoriteTrainersDto;
+import dev.branow.dtos.service.UpdateTraineeDto;
 import dev.branow.mappers.TraineeMapper;
+import dev.branow.mappers.TrainerMapper;
+import dev.branow.model.Trainer;
 import dev.branow.repositories.TraineeRepository;
 import dev.branow.repositories.TrainerRepository;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
+
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
-@Validated
 @RequiredArgsConstructor
 public class TraineeService {
 
     private final TraineeRepository repository;
     private final TraineeMapper mapper;
+    private final TrainerMapper trainerMapper;
     private final UserService userService;
     private final TrainerRepository trainerRepository;
 
     @Transactional
-    @Authenticate
-    @Authorize(UserAuthorizer.Id.class)
-    @Log("getting trainee by id %0")
-    public TraineeDto getById(Long id) {
-        return mapper.toTraineeDto(repository.getReferenceById(id));
-    }
-
-    @Transactional
-    @Authenticate
-    @Authorize(UserAuthorizer.Username.class)
     @Log("getting trainee by username %0")
     public TraineeDto getByUsername(String username) {
         return mapper.toTraineeDto(repository.getReferenceByUsername(username));
     }
 
     @Log("creating trainee with %0")
-    public TraineeDto create(@Valid CreateTraineeDto dto) {
+    public TraineeDto create(CreateTraineeDto dto) {
         var trainee = mapper.toTrainee(dto);
         userService.prepareUserForCreation(trainee);
         var savedTrainee = repository.save(trainee);
@@ -51,11 +46,9 @@ public class TraineeService {
     }
 
     @Transactional
-    @Authenticate
-    @Authorize(UserAuthorizer.UpdateTraineeDto.class)
     @Log("updating trainee with %0")
-    public TraineeDto update(@Valid UpdateTraineeDto dto) {
-        var trainee = repository.getReferenceById(dto.getId());
+    public TraineeDto update(UpdateTraineeDto dto) {
+        var trainee = repository.getReferenceByUsername(dto.getUsername());
         userService.applyUserUpdates(trainee, dto);
         trainee.setDateOfBirth(dto.getDateOfBirth());
         trainee.setAddress(dto.getAddress());
@@ -63,33 +56,37 @@ public class TraineeService {
     }
 
     @Transactional
-    @Authenticate
-    @Authorize(UserAuthorizer.Username.class)
     @Log("deleting trainee by username %0")
     public void deleteByUsername(String username) {
         repository.deleteByUsername(username);
     }
 
     @Transactional
-    @Authenticate
-    @Authorize(UserAuthorizer.Username.class)
-    @Log("adding new favorite trainer %1 for trainee %0")
-    public TraineeDto addFavoriteTrainer(String traineeUsername, String trainerUsername) {
-        var trainee = repository.getReferenceByUsername(traineeUsername);
-        var trainer = trainerRepository.getReferenceByUsername(trainerUsername);
-        trainee.getTrainers().add(trainer);
-        return mapper.toTraineeDto(trainee);
-    }
+    @Log("updating favorite trainer list %0")
+    public List<ShortTrainerDto> updateFavoriteTrainers(UpdateFavoriteTrainersDto dto) {
+        var trainerUsernames = dto.getTrainers();
+        var trainee = repository.getReferenceByUsername(dto.getTrainee());
 
-    @Transactional
-    @Authenticate
-    @Authorize(UserAuthorizer.Username.class)
-    @Log("adding new favorite trainer %1 for trainee %0")
-    public TraineeDto deleteFavoriteTrainer(String traineeUsername, String trainerUsername) {
-        var trainee = repository.getReferenceByUsername(traineeUsername);
-        var trainer = trainerRepository.getReferenceByUsername(trainerUsername);
-        trainee.getTrainers().remove(trainer);
-        return mapper.toTraineeDto(trainee);
+        List<Trainer> currentTrainers = trainee.getFavoriteTrainers();
+        Map<String, Trainer> currentTrainersMap = currentTrainers.stream()
+                .collect(Collectors.toMap(Trainer::getUsername, Function.identity()));
+
+        List<Trainer> addTrainers = trainerUsernames.stream()
+                .filter(username -> !currentTrainersMap.containsKey(username))
+                .map((username) -> trainerRepository.findByUsername(username)
+                        .orElseThrow(() -> new ValidationException("Trainer not found by identifier " + username)))
+                .toList();
+
+        List<Trainer> removeTrainers = currentTrainers.stream()
+                .filter(trainer -> !trainerUsernames.contains(trainer.getUsername()))
+                .toList();
+
+        currentTrainers.addAll(addTrainers);
+        currentTrainers.removeAll(removeTrainers);
+
+        return currentTrainers.stream()
+                .map(trainerMapper::toShortTrainerDto)
+                .toList();
     }
 
 }
