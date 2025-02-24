@@ -3,7 +3,6 @@ package dev.branow.log;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-
 @Slf4j
 @Component
 public class Slf4jLogBuilderFactory implements LogBuilderFactory {
@@ -26,4 +25,5 @@ public class Slf4jLogBuilderFactory implements LogBuilderFactory {
             case TRACE -> org.slf4j.event.Level.TRACE;
         };
     }
+
 }

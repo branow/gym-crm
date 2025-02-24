@@ -37,9 +37,9 @@ public class TraineeController {
 
     @PostMapping
     public ResponseEntity<CredentialsResponse> create(@RequestBody @Valid CreateTraineeRequest request) {
-        var dto = mapper.toCreateTraineeDto(request);
+        var dto = mapper.mapCreateTraineeDto(request);
         var trainee = service.create(dto);
-        var credentials = mapper.toCredentialsResponse(trainee);
+        var credentials = mapper.mapCredentialsResponse(trainee);
         return ResponseEntity.status(HttpStatus.CREATED).body(credentials);
     }
 
@@ -47,7 +47,7 @@ public class TraineeController {
     @Authorize(UserAuthorizer.Username.class)
     @GetMapping("/{username}")
     public ResponseEntity<TraineeResponse> get(@PathVariable("username") String username) {
-        var trainee = mapper.toTraineeResponse(service.getByUsername(username));
+        var trainee = mapper.mapTraineeResponse(service.getByUsername(username));
         return ResponseEntity.ok(trainee);
     }
 
@@ -58,9 +58,9 @@ public class TraineeController {
             @PathVariable("username") String username,
             @RequestBody @Valid UpdateTraineeRequest request
     ) {
-        var updateDto = mapper.toUpdateTraineeDto(username, request);
+        var updateDto = mapper.mapUpdateTraineeDto(username, request);
         var trainee = service.update(updateDto);
-        var response = mapper.toTraineeResponse(trainee);
+        var response = mapper.mapTraineeResponse(trainee);
         return ResponseEntity.ok(response);
     }
 
@@ -79,7 +79,7 @@ public class TraineeController {
             @PathVariable("username") String username,
             @RequestBody @Valid UpdateFavoriteTrainersRequest request
     ) {
-        var updateDto = mapper.toUpdateFavouriteTrainersDto(username, request);
+        var updateDto = mapper.mapUpdateFavouriteTrainersDto(username, request);
         var trainers = service.updateFavoriteTrainers(updateDto);
         return ResponseEntity.ok(trainers);
     }
@@ -94,9 +94,9 @@ public class TraineeController {
             @RequestParam(value = "trainer", required = false) String trainer,
             @RequestParam(value = "type", required = false) Long type
     ) {
-        var filter = mapper.toCriteriaTrainingTraineeDto(username, from, to, trainer, type);
+        var filter = mapper.mapCriteriaTrainingTraineeDto(username, from, to, trainer, type);
         var trainings = trainingService.getAllByTraineeUsernameCriteria(filter);
-        var response = trainings.stream().map(trainingMapper::toTrainingResponse).toList();
+        var response = trainings.stream().map(trainingMapper::mapTrainingResponse).toList();
         return ResponseEntity.ok(response);
     }
 

@@ -44,10 +44,10 @@ public class LoggingFilter extends OncePerRequestFilter {
         int status = response.getStatus();
         String responseBody = getResponseBody(response);
 
-        if (status >= 400 && status < 500) {
-            log.warn("{}: response: {} body: {}", uuid, response.getStatus(), responseBody);
-        } else if (status >= 500) {
+        if (status >= 500) {
             log.error("{}: response: {} body: {}", uuid, response.getStatus(), responseBody);
+        } else if (status >= 400) {
+            log.warn("{}: response: {} body: {}", uuid, response.getStatus(), responseBody);
         } else {
             log.info("{}: response: {}", uuid, response.getStatus());
         }

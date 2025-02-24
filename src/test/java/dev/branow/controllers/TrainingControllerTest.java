@@ -6,10 +6,8 @@ import dev.branow.mappers.TrainingTypeMapper;
 import dev.branow.services.TrainingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -62,7 +60,7 @@ public class TrainingControllerTest {
                 .trainee("test trainee")
                 .trainer("test trainer")
                 .build();
-        var createTrainingDto = mapper.toCreateTrainingDto(createTrainingRequest);
+        var createTrainingDto = mapper.mapCreateTrainingDto(createTrainingRequest);
 
         var request = rest(post("/trainings")).content(toJson(createTrainingDto));
         mockMvc.perform(request)
@@ -73,7 +71,7 @@ public class TrainingControllerTest {
     @ParameterizedTest
     @MethodSource("provideTestCreate_invalidTraining_return42")
     public void testCreate_invalidTraining_return422(CreateTrainingRequest createTrainingRequest) throws Exception {
-        var createTrainingDto = mapper.toCreateTrainingDto(createTrainingRequest);
+        var createTrainingDto = mapper.mapCreateTrainingDto(createTrainingRequest);
 
         var request = rest(post("/trainings")).content(toJson(createTrainingDto));
         mockMvc.perform(request)

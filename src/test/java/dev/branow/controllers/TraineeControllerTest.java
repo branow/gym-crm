@@ -71,15 +71,15 @@ public class TraineeControllerTest {
 
     @Test
     public void testCreate() throws Exception {
-        var traineeDto = mapper.toTraineeDto(nextTrainee(null));
+        var traineeDto = mapper.mapTraineeDto(nextTrainee(null));
         var createTraineeRequest = CreateTraineeRequest.builder()
                 .firstName(traineeDto.getFirstName())
                 .lastName(traineeDto.getLastName())
                 .address(traineeDto.getAddress())
                 .dateOfBirth(traineeDto.getDateOfBirth())
                 .build();
-        var createTraineeDto = mapper.toCreateTraineeDto(createTraineeRequest);
-        var credentialsResponse = mapper.toCredentialsResponse(traineeDto);
+        var createTraineeDto = mapper.mapCreateTraineeDto(createTraineeRequest);
+        var credentialsResponse = mapper.mapCredentialsResponse(traineeDto);
 
         when(service.create(createTraineeDto)).thenReturn(traineeDto);
 
@@ -126,8 +126,8 @@ public class TraineeControllerTest {
         );
         trainee.setTrainings(trainings);
 
-        var traineeDto = mapper.toTraineeDto(trainee);
-        var traineeResponse = mapper.toTraineeResponse(traineeDto);
+        var traineeDto = mapper.mapTraineeDto(trainee);
+        var traineeResponse = mapper.mapTraineeResponse(traineeDto);
 
         when(service.getByUsername(trainee.getUsername())).thenReturn(traineeDto);
 
@@ -140,14 +140,14 @@ public class TraineeControllerTest {
 
     @Test
     public void testUpdate() throws Exception {
-        var traineeDto = mapper.toTraineeDto(nextTrainee(null));
+        var traineeDto = mapper.mapTraineeDto(nextTrainee(null));
         var updateTraineeRequest = UpdateTraineeRequest.builder()
                 .firstName(traineeDto.getFirstName())
                 .lastName(traineeDto.getLastName())
                 .isActive(true)
                 .build();
-        var updateDto = mapper.toUpdateTraineeDto(traineeDto.getUsername(), updateTraineeRequest);
-        var traineeResponse = mapper.toTraineeResponse(traineeDto);
+        var updateDto = mapper.mapUpdateTraineeDto(traineeDto.getUsername(), updateTraineeRequest);
+        var traineeResponse = mapper.mapTraineeResponse(traineeDto);
 
         when(service.update(updateDto)).thenReturn(traineeDto);
 
@@ -206,10 +206,10 @@ public class TraineeControllerTest {
                 nextTrainer(specialization, null),
                 nextTrainer(specialization, null)
         );
-        var shortTrainerDtos = trainers.stream().map(traineeTrainerMapper::toShortTrainerDto).toList();
+        var shortTrainerDtos = trainers.stream().map(traineeTrainerMapper::mapShortTrainerDto).toList();
         var trainerUsernames = trainers.stream().map(Trainer::getUsername).toList();
         var updateFavoriteTrainersRequest = new UpdateFavoriteTrainersRequest(trainerUsernames);
-        var updateFavoriteTrainersDto = mapper.toUpdateFavouriteTrainersDto(username, updateFavoriteTrainersRequest);
+        var updateFavoriteTrainersDto = mapper.mapUpdateFavouriteTrainersDto(username, updateFavoriteTrainersRequest);
 
         when(service.updateFavoriteTrainers(updateFavoriteTrainersDto)).thenReturn(shortTrainerDtos);
 
@@ -240,9 +240,9 @@ public class TraineeControllerTest {
         var trainingDtos = Stream.of(
                 nextTraining(null, null, null),
                 nextTraining(null, null, null)
-                ).map(trainingMapper::toTrainingDto)
+                ).map(trainingMapper::mapTrainingDto)
                 .toList();
-        var trainingResponse = trainingDtos.stream().map(trainingMapper::toTrainingResponse).toList();
+        var trainingResponse = trainingDtos.stream().map(trainingMapper::mapTrainingResponse).toList();
 
         when(trainingService.getAllByTraineeUsernameCriteria(criteria)).thenReturn(trainingDtos);
 

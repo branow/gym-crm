@@ -23,7 +23,7 @@ public class TraineeMapper {
     private final TrainingMapper trainingMapper;
     private final TraineeTrainerMapper traineeTrainerMapper;
 
-    public CreateTraineeDto toCreateTraineeDto(CreateTraineeRequest request) {
+    public CreateTraineeDto mapCreateTraineeDto(CreateTraineeRequest request) {
         return CreateTraineeDto.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
@@ -32,7 +32,7 @@ public class TraineeMapper {
                 .build();
     }
 
-    public CriteriaTrainingTraineeDto toCriteriaTrainingTraineeDto(
+    public CriteriaTrainingTraineeDto mapCriteriaTrainingTraineeDto(
             String username, LocalDate from, LocalDate to, String trainer, Long type
     ) {
         return CriteriaTrainingTraineeDto.builder()
@@ -44,7 +44,7 @@ public class TraineeMapper {
                 .build();
     }
 
-    public UpdateFavoriteTrainersDto toUpdateFavouriteTrainersDto(
+    public UpdateFavoriteTrainersDto mapUpdateFavouriteTrainersDto(
             String username,
             UpdateFavoriteTrainersRequest request
     ) {
@@ -54,7 +54,7 @@ public class TraineeMapper {
                 .build();
     }
 
-    public UpdateTraineeDto toUpdateTraineeDto(String username, UpdateTraineeRequest request) {
+    public UpdateTraineeDto mapUpdateTraineeDto(String username, UpdateTraineeRequest request) {
         var trainee = new UpdateTraineeDto();
         trainee.setUsername(username);
         trainee.setFirstName(request.getFirstName());
@@ -65,7 +65,7 @@ public class TraineeMapper {
         return trainee;
     }
 
-    public TraineeResponse toTraineeResponse(TraineeDto trainee) {
+    public TraineeResponse mapTraineeResponse(TraineeDto trainee) {
         return TraineeResponse.builder()
                 .username(trainee.getUsername())
                 .firstName(trainee.getFirstName())
@@ -77,14 +77,14 @@ public class TraineeMapper {
                 .build();
     }
 
-    public CredentialsResponse toCredentialsResponse(TraineeDto dto) {
+    public CredentialsResponse mapCredentialsResponse(TraineeDto dto) {
         return CredentialsResponse.builder()
                 .username(dto.getUsername())
                 .password(dto.getPassword())
                 .build();
     }
 
-    public TraineeDto toTraineeDto(Trainee trainee) {
+    public TraineeDto mapTraineeDto(Trainee trainee) {
         return TraineeDto.builder()
                 .id(trainee.getId())
                 .firstName(trainee.getFirstName())
@@ -102,18 +102,18 @@ public class TraineeMapper {
     private List<ShortTrainerDto> getShortFavoriteTrainersDtos(Trainee trainee) {
         return Optional.ofNullable(trainee.getFavoriteTrainers())
                 .orElse(Collections.emptyList()).stream()
-                .map(traineeTrainerMapper::toShortTrainerDto)
+                .map(traineeTrainerMapper::mapShortTrainerDto)
                 .collect(Collectors.toList());
     }
 
     private List<TrainingDto> getTrainingDtos(Trainee trainee) {
         return Optional.ofNullable(trainee.getTrainings())
                 .orElse(Collections.emptyList()).stream()
-                .map(trainingMapper::toTrainingDto)
+                .map(trainingMapper::mapTrainingDto)
                 .toList();
     }
 
-    public Trainee toTrainee(CreateTraineeDto dto) {
+    public Trainee mapTrainee(CreateTraineeDto dto) {
         Trainee trainee = new Trainee();
         trainee.setFirstName(dto.getFirstName());
         trainee.setLastName(dto.getLastName());

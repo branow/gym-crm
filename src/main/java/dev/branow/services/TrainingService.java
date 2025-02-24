@@ -29,14 +29,14 @@ public class TrainingService {
     public TrainingDto create(CreateTrainingDto dto) {
         var trainee = traineeRepository.getReferenceByUsername(dto.getTrainee());
         var trainer = trainerRepository.getReferenceByUsername(dto.getTrainer());
-        var training = mapper.toTraining(dto);
+        var training = mapper.mapTraining(dto);
 
         training.setType(trainer.getSpecialization());
         training.setTrainee(trainee);
         training.setTrainer(trainer);
 
         var savedTraining = repository.save(training);
-        return mapper.toTrainingDto(savedTraining);
+        return mapper.mapTrainingDto(savedTraining);
     }
 
     @Log("getting all trainings for trainee %0")
@@ -47,7 +47,7 @@ public class TrainingService {
                 dto.getFrom(),
                 dto.getTo(),
                 dto.getTypeId()
-        ).stream().map(mapper::toTrainingDto).toList();
+        ).stream().map(mapper::mapTrainingDto).toList();
     }
 
     @Log("getting all trainings for trainer %0")
@@ -58,7 +58,7 @@ public class TrainingService {
                 dto.getFrom(),
                 dto.getTo(),
                 null
-        ).stream().map(mapper::toTrainingDto).toList();
+        ).stream().map(mapper::mapTrainingDto).toList();
     }
 
 }

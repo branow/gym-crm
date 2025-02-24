@@ -56,7 +56,7 @@ public class UserControllerTest {
     @Test
     public void testLogin() throws Exception {
         var loginRequest = new LoginRequest("username", "password");
-        var credentialsDto = mapper.toCredentialsDto(loginRequest);
+        var credentialsDto = mapper.mapCredentialsDto(loginRequest);
 
         var request = rest(post("/users/login")).content(toJson(loginRequest));
         mockMvc.perform(request)

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserMapper {
 
-    public CredentialsDto toCredentialsDto(LoginRequest request) {
+    public CredentialsDto mapCredentialsDto(LoginRequest request) {
         return new CredentialsDto(request.getUsername(), request.getPassword());
     }
 

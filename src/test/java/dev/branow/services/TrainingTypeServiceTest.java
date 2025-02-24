@@ -32,7 +32,7 @@ public class TrainingTypeServiceTest extends DBTest {
     public void getAll() {
         var query = String.format("select t from %s t", TrainingType.class.getName());
         var expected = manager.createQuery(query, TrainingType.class).getResultList()
-                .stream().map(mapper::toTrainingTypeDto).toList();
+                .stream().map(mapper::mapTrainingTypeDto).toList();
         var actual = service.getAll();
         assertEquals(expected, actual);
     }

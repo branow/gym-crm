@@ -31,7 +31,7 @@ public class TrainingController {
     public ResponseEntity<?> create(
             @RequestBody @Valid CreateTrainingRequest request
     ) {
-        var createDto = mapper.toCreateTrainingDto(request);
+        var createDto = mapper.mapCreateTrainingDto(request);
         service.create(createDto);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }

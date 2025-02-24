@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface TrainingRepository extends JpaRepository<Training, Long> {
+
     List<Training> findAllByCriteria(
             String traineeUsername,
             String trainerUsername,
@@ -14,4 +15,5 @@ public interface TrainingRepository extends JpaRepository<Training, Long> {
             LocalDate to,
             Long typeId
     );
+
 }

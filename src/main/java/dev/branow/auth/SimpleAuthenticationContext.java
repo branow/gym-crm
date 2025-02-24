@@ -30,4 +30,5 @@ public class SimpleAuthenticationContext implements AuthenticationContext {
     public void setAuthenticated(boolean authenticated) {
         this.authenticated = authenticated;
     }
+
 }

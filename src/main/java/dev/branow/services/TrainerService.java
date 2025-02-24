@@ -30,25 +30,25 @@ public class TrainerService {
     public List<ShortTrainerDto> getAllNotAssignedByTraineeUsername(String username) {
         return repository.findAllNotAssignedOnTraineeByTraineeUsername(username).stream()
                 .filter(Trainer::getIsActive)
-                .map(mapper::toShortTrainerDto).toList();
+                .map(mapper::mapShortTrainerDto).toList();
     }
 
     @Transactional
     @Log("getting trainer by username %0")
     public TrainerDto getByUsername(String username) {
-        return mapper.toTrainerDto(repository.getReferenceByUsername(username));
+        return mapper.mapTrainerDto(repository.getReferenceByUsername(username));
     }
 
     @Transactional
     @Log("creating trainer with %0")
     public TrainerDto create(CreateTrainerDto dto) {
-        var trainer = mapper.toTrainer(dto);
+        var trainer = mapper.mapTrainer(dto);
         userService.prepareUserForCreation(trainer);
         var trainingType = trainingTypeRepository.findById(dto.getSpecialization())
                 .orElseThrow(() -> new ValidationException("Specialization not found by identifier " + dto.getSpecialization()));
         trainer.setSpecialization(trainingType);
         var savedTrainer = repository.save(trainer);
-        return mapper.toTrainerDto(savedTrainer);
+        return mapper.mapTrainerDto(savedTrainer);
     }
 
     @Transactional
@@ -59,7 +59,7 @@ public class TrainerService {
                 .orElseThrow(() -> new ValidationException("Specialization not found by identifier " + dto.getSpecialization()));
         trainer.setSpecialization(trainingType);
         userService.applyUserUpdates(trainer, dto);
-        return mapper.toTrainerDto(trainer);
+        return mapper.mapTrainerDto(trainer);
     }
 
 }

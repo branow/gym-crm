@@ -8,7 +8,6 @@ import dev.branow.dtos.service.*;
 import dev.branow.dtos.response.TrainerResponse;
 import dev.branow.dtos.response.CredentialsResponse;
 import dev.branow.model.Trainer;
-import dev.branow.model.Training;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +24,7 @@ public class TrainerMapper {
     private final TrainingTypeMapper trainingTypeMapper;
     private final TrainingMapper trainingMapper;
 
-    public CreateTrainerDto toCreateTrainerDto(CreateTrainerRequest request) {
+    public CreateTrainerDto mapCreateTrainerDto(CreateTrainerRequest request) {
         return CreateTrainerDto.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
@@ -33,7 +32,7 @@ public class TrainerMapper {
                 .build();
     }
 
-    public CriteriaTrainingTrainerDto toCriteriaTrainingTrainerDto(
+    public CriteriaTrainingTrainerDto mapCriteriaTrainingTrainerDto(
             String username, LocalDate from, LocalDate to, String trainee
     ) {
         return CriteriaTrainingTrainerDto.builder()
@@ -44,11 +43,11 @@ public class TrainerMapper {
                 .build();
     }
 
-    public ShortTrainerDto toShortTrainerDto(Trainer trainer) {
-        return traineeTrainerMapper.toShortTrainerDto(trainer);
+    public ShortTrainerDto mapShortTrainerDto(Trainer trainer) {
+        return traineeTrainerMapper.mapShortTrainerDto(trainer);
     }
 
-    public UpdateTrainerDto toUpdateTraineeDto(String username, UpdateTrainerRequest request) {
+    public UpdateTrainerDto mapUpdateTraineeDto(String username, UpdateTrainerRequest request) {
         var trainer = new UpdateTrainerDto();
         trainer.setUsername(username);
         trainer.setFirstName(request.getFirstName());
@@ -58,7 +57,7 @@ public class TrainerMapper {
         return trainer;
     }
 
-    public TrainerResponse toTrainerResponse(TrainerDto dto) {
+    public TrainerResponse mapTrainerResponse(TrainerDto dto) {
         return TrainerResponse.builder()
                 .username(dto.getUsername())
                 .firstName(dto.getFirstName())
@@ -69,14 +68,14 @@ public class TrainerMapper {
                 .build();
     }
 
-    public CredentialsResponse toCredentialsResponse(TrainerDto dto) {
+    public CredentialsResponse mapCredentialsResponse(TrainerDto dto) {
         return CredentialsResponse.builder()
                 .username(dto.getUsername())
                 .password(dto.getPassword())
                 .build();
     }
 
-    public TrainerDto toTrainerDto(Trainer trainer) {
+    public TrainerDto mapTrainerDto(Trainer trainer) {
         return TrainerDto.builder()
                 .id(trainer.getId())
                 .firstName(trainer.getFirstName())
@@ -86,7 +85,7 @@ public class TrainerMapper {
                 .isActive(trainer.getIsActive())
                 .trainings(getTrainingDtos(trainer))
                 .favoriteBy(getShortFavoriteByDtos(trainer))
-                .specialization(trainingTypeMapper.toTrainingTypeDto(trainer.getSpecialization()))
+                .specialization(trainingTypeMapper.mapTrainingTypeDto(trainer.getSpecialization()))
                 .build();
     }
 
@@ -94,7 +93,7 @@ public class TrainerMapper {
         return Optional.ofNullable(trainer.getFavoriteBy())
                 .orElse(Collections.emptyList())
                 .stream()
-                .map(traineeTrainerMapper::toShortTraineeDto)
+                .map(traineeTrainerMapper::mapShortTraineeDto)
                 .toList();
     }
 
@@ -102,11 +101,11 @@ public class TrainerMapper {
         return Optional.ofNullable(trainer.getTrainings())
                 .orElse(Collections.emptyList())
                 .stream()
-                .map(trainingMapper::toTrainingDto)
+                .map(trainingMapper::mapTrainingDto)
                 .toList();
     }
 
-    public Trainer toTrainer(CreateTrainerDto dto) {
+    public Trainer mapTrainer(CreateTrainerDto dto) {
         Trainer trainer = new Trainer();
         trainer.setFirstName(dto.getFirstName());
         trainer.setLastName(dto.getLastName());

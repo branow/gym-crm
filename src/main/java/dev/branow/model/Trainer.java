@@ -15,10 +15,15 @@ import java.util.List;
 @Entity(name = "trainers")
 @PrimaryKeyJoinColumn(name = "user_id", referencedColumnName = "id")
 public class Trainer extends User {
-    @ManyToOne @JoinColumn(name = "specialization", referencedColumnName = "id")
+
+    @ManyToOne
+    @JoinColumn(name = "specialization", referencedColumnName = "id")
     TrainingType specialization;
+
     @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL)
     List<Training> trainings;
+
     @ManyToMany(mappedBy = "favoriteTrainers")
     List<Trainee> favoriteBy;
+
 }

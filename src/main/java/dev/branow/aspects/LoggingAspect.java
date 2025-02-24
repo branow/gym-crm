@@ -8,8 +8,6 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -20,16 +18,13 @@ public class LoggingAspect {
 
     private final LogBuilderFactory logBuilderFactory;
     private final UUIDProvider uuidProvider;
-    private final ApplicationContext applicationContext;
 
     public LoggingAspect(
             LogBuilderFactory logBuilderFactory,
-            @Autowired(required = false) UUIDProvider uuidProvider,
-            @Lazy ApplicationContext applicationContext
+            @Autowired(required = false) UUIDProvider uuidProvider
     ) {
         this.logBuilderFactory = logBuilderFactory;
         this.uuidProvider = uuidProvider;
-        this.applicationContext = applicationContext;
     }
 
     @Around("@annotation(log)")

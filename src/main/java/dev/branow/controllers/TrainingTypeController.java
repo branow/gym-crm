@@ -24,7 +24,7 @@ public class TrainingTypeController {
     @GetMapping
     public ResponseEntity<List<TrainingTypeResponse>> getAll() {
         var types = service.getAll().stream()
-                .map(mapper::toTrainingTypeResponse)
+                .map(mapper::mapTrainingTypeResponse)
                 .toList();
         return ResponseEntity.ok(types);
     }

@@ -14,10 +14,14 @@ import java.util.List;
 @Entity(name = "trainees")
 @PrimaryKeyJoinColumn(name = "user_id", referencedColumnName = "id")
 public class Trainee extends User {
+
     LocalDate dateOfBirth;
+
     String address;
+
     @OneToMany(mappedBy = "trainee", cascade = CascadeType.ALL)
     List<Training> trainings;
+
     @ManyToMany
     @JoinTable(
             name = "trainee_favorite_trainers",
@@ -25,4 +29,5 @@ public class Trainee extends User {
             inverseJoinColumns = @JoinColumn(name = "trainer_id")
     )
     List<Trainer> favoriteTrainers;
+
 }

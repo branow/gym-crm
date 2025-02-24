@@ -11,8 +11,11 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ChangePasswordDto {
+
     @NotBlank
     String oldPassword;
+
     @NotBlank @Size(min = 8, max = 20)
     String newPassword;
+
 }

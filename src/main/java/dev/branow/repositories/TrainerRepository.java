@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TrainerRepository extends JpaRepository<Trainer, Long> {
+
     Optional<Trainer> findByUsername(String username);
 
     default Trainer getReferenceByUsername(String username) {
@@ -25,4 +26,5 @@ public interface TrainerRepository extends JpaRepository<Trainer, Long> {
         )
     """)
     List<Trainer> findAllNotAssignedOnTraineeByTraineeUsername(@Param("username") String username);
+
 }

@@ -74,14 +74,14 @@ public class TrainerControllerTest {
 
     @Test
     public void testCreate() throws Exception {
-        var trainerDto = mapper.toTrainerDto(nextTrainer(nextTrainingType(), null));
+        var trainerDto = mapper.mapTrainerDto(nextTrainer(nextTrainingType(), null));
         var createTrainerRequest = CreateTrainerRequest.builder()
                 .firstName(trainerDto.getFirstName())
                 .lastName(trainerDto.getLastName())
                 .specialization(trainerDto.getSpecialization().getId())
                 .build();
-        var createTrainerDto = mapper.toCreateTrainerDto(createTrainerRequest);
-        var credentialsResponse = mapper.toCredentialsResponse(trainerDto);
+        var createTrainerDto = mapper.mapCreateTrainerDto(createTrainerRequest);
+        var credentialsResponse = mapper.mapCredentialsResponse(trainerDto);
 
         when(service.create(createTrainerDto)).thenReturn(trainerDto);
 
@@ -128,8 +128,8 @@ public class TrainerControllerTest {
         );
         trainer.setTrainings(trainings);
 
-        var trainerDto = mapper.toTrainerDto(trainer);
-        var trainerResponse = mapper.toTrainerResponse(trainerDto);
+        var trainerDto = mapper.mapTrainerDto(trainer);
+        var trainerResponse = mapper.mapTrainerResponse(trainerDto);
 
         when(service.getByUsername(trainer.getUsername())).thenReturn(trainerDto);
 
@@ -142,15 +142,15 @@ public class TrainerControllerTest {
 
     @Test
     public void testUpdate() throws Exception {
-        var trainerDto = mapper.toTrainerDto(nextTrainer(nextTrainingType(), null));
+        var trainerDto = mapper.mapTrainerDto(nextTrainer(nextTrainingType(), null));
         var updateTrainerRequest = UpdateTrainerRequest.builder()
                 .firstName(trainerDto.getFirstName())
                 .lastName(trainerDto.getLastName())
                 .specialization(2L)
                 .isActive(true)
                 .build();
-        var updateTrainerDto = mapper.toUpdateTraineeDto(trainerDto.getUsername(), updateTrainerRequest);
-        var trainerResponse = mapper.toTrainerResponse(trainerDto);
+        var updateTrainerDto = mapper.mapUpdateTraineeDto(trainerDto.getUsername(), updateTrainerRequest);
+        var trainerResponse = mapper.mapTrainerResponse(trainerDto);
 
         when(service.update(updateTrainerDto)).thenReturn(trainerDto);
 
@@ -196,9 +196,9 @@ public class TrainerControllerTest {
         var trainingDtos = Stream.of(
                         nextTraining(null, null, null),
                         nextTraining(null, null, null)
-                ).map(trainingMapper::toTrainingDto)
+                ).map(trainingMapper::mapTrainingDto)
                 .toList();
-        var trainingResponse = trainingDtos.stream().map(trainingMapper::toTrainingResponse).toList();
+        var trainingResponse = trainingDtos.stream().map(trainingMapper::mapTrainingResponse).toList();
 
         when(trainingService.getAllByTrainerUsernameCriteria(criteria)).thenReturn(trainingDtos);
 
@@ -257,7 +257,7 @@ public class TrainerControllerTest {
                 nextTrainer(nextTrainingType(), null),
                 nextTrainer(nextTrainingType(), null),
                 nextTrainer(nextTrainingType(), null)
-        ).map(mapper::toShortTrainerDto).toList();
+        ).map(mapper::mapShortTrainerDto).toList();
 
         when(service.getAllNotAssignedByTraineeUsername(username)).thenReturn(shortTrainerDtos);
 

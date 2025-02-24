@@ -8,14 +8,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class TrainingTypeMapper {
 
-    public TrainingTypeResponse toTrainingTypeResponse(TrainingTypeDto dto) {
+    public TrainingTypeResponse mapTrainingTypeResponse(TrainingTypeDto dto) {
         return TrainingTypeResponse.builder()
                 .id(dto.getId())
                 .name(dto.getName())
                 .build();
     }
 
-    public TrainingTypeDto toTrainingTypeDto(TrainingType trainingType) {
+    public TrainingTypeDto mapTrainingTypeDto(TrainingType trainingType) {
         return TrainingTypeDto.builder()
                 .id(trainingType.getId())
                 .name(trainingType.getName())

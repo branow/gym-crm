@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TraineeTrainerMapper {
 
-    public ShortTrainerDto toShortTrainerDto(Trainer trainer) {
+    public ShortTrainerDto mapShortTrainerDto(Trainer trainer) {
         return ShortTrainerDto.builder()
                 .firstName(trainer.getFirstName())
                 .lastName(trainer.getLastName())
@@ -18,7 +18,7 @@ public class TraineeTrainerMapper {
                 .build();
     }
 
-    public ShortTraineeDto toShortTraineeDto(Trainee trainee) {
+    public ShortTraineeDto mapShortTraineeDto(Trainee trainee) {
         return ShortTraineeDto.builder()
                 .firstName(trainee.getFirstName())
                 .lastName(trainee.getLastName())

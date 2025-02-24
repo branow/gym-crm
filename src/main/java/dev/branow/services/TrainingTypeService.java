@@ -19,7 +19,7 @@ public class TrainingTypeService {
     @Log("getting all training types")
     public List<TrainingTypeDto> getAll() {
         return repository.findAll().stream()
-                .map(mapper::toTrainingTypeDto)
+                .map(mapper::mapTrainingTypeDto)
                 .toList();
     }
 

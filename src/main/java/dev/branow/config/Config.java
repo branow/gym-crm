@@ -11,6 +11,4 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @PropertySource("classpath:application.properties")
 @EnableWebMvc
 @EnableAspectJAutoProxy
-public class Config {
-
-}
+public class Config {}

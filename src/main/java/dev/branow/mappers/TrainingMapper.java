@@ -17,7 +17,7 @@ public class TrainingMapper {
 
     private final TrainingTypeMapper trainingTypeMapper;
 
-    public CreateTrainingDto toCreateTrainingDto(CreateTrainingRequest request) {
+    public CreateTrainingDto mapCreateTrainingDto(CreateTrainingRequest request) {
         return CreateTrainingDto.builder()
                 .date(request.getDate())
                 .duration(request.getDuration())
@@ -27,7 +27,7 @@ public class TrainingMapper {
                 .build();
     }
 
-    public TrainingResponse toTrainingResponse(TrainingDto dto) {
+    public TrainingResponse mapTrainingResponse(TrainingDto dto) {
         return TrainingResponse.builder()
                 .trainer(dto.getTrainer())
                 .trainee(dto.getTrainee())
@@ -38,8 +38,8 @@ public class TrainingMapper {
                 .build();
     }
 
-    public TrainingDto toTrainingDto(Training training) {
-        var type = training.getType() != null ? trainingTypeMapper.toTrainingTypeDto(training.getType()) : null;
+    public TrainingDto mapTrainingDto(Training training) {
+        var type = training.getType() != null ? trainingTypeMapper.mapTrainingTypeDto(training.getType()) : null;
         var trainee = training.getTrainee() != null ? training.getTrainee().getUsername() : null;
         var trainer = training.getTrainer() != null ? training.getTrainer().getUsername() : null;
         return TrainingDto.builder()
@@ -53,7 +53,7 @@ public class TrainingMapper {
                 .build();
     }
 
-    public Training toTraining(CreateTrainingDto dto) {
+    public Training mapTraining(CreateTrainingDto dto) {
         return Training.builder()
                 .name(dto.getName())
                 .date(dto.getDate())

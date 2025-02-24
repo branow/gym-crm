@@ -51,8 +51,8 @@ public class TrainingTypeControllerTest {
     @Test
     public void testGetAll() throws Exception {
         var trainingTypeDtos = Stream.generate(TestDataFactory::nextTrainingType)
-                .limit(5).map(mapper::toTrainingTypeDto).toList();
-        var trainingTypeResponses = trainingTypeDtos.stream().map(mapper::toTrainingTypeResponse).toList();
+                .limit(5).map(mapper::mapTrainingTypeDto).toList();
+        var trainingTypeResponses = trainingTypeDtos.stream().map(mapper::mapTrainingTypeResponse).toList();
 
         when(service.getAll()).thenReturn(trainingTypeDtos);
 

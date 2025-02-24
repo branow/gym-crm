@@ -36,9 +36,9 @@ public class TrainerController {
 
     @PostMapping
     public ResponseEntity<CredentialsResponse> create(@RequestBody @Valid CreateTrainerRequest request) {
-        var dto = mapper.toCreateTrainerDto(request);
+        var dto = mapper.mapCreateTrainerDto(request);
         var trainer = service.create(dto);
-        var credentials = mapper.toCredentialsResponse(trainer);
+        var credentials = mapper.mapCredentialsResponse(trainer);
         return ResponseEntity.status(HttpStatus.CREATED).body(credentials);
     }
 
@@ -47,7 +47,7 @@ public class TrainerController {
     @GetMapping("/{username}")
     public ResponseEntity<TrainerResponse> get(@PathVariable("username") String username) {
         var trainer = service.getByUsername(username);
-        var response = mapper.toTrainerResponse(trainer);
+        var response = mapper.mapTrainerResponse(trainer);
         return ResponseEntity.ok(response);
     }
 
@@ -58,9 +58,9 @@ public class TrainerController {
             @PathVariable("username") String username,
             @RequestBody @Valid UpdateTrainerRequest request
     ) {
-        var updateDto = mapper.toUpdateTraineeDto(username, request);
+        var updateDto = mapper.mapUpdateTraineeDto(username, request);
         var trainer = service.update(updateDto);
-        var response = mapper.toTrainerResponse(trainer);
+        var response = mapper.mapTrainerResponse(trainer);
         return ResponseEntity.ok(response);
     }
 
@@ -82,9 +82,9 @@ public class TrainerController {
             @RequestParam(value = "to", required = false) LocalDate to,
             @RequestParam(value = "trainee", required = false) String trainee
     ) {
-        var filter = mapper.toCriteriaTrainingTrainerDto(username, from, to, trainee);
+        var filter = mapper.mapCriteriaTrainingTrainerDto(username, from, to, trainee);
         var trainings = trainingService.getAllByTrainerUsernameCriteria(filter);
-        var response = trainings.stream().map(trainingMapper::toTrainingResponse).toList();
+        var response = trainings.stream().map(trainingMapper::mapTrainingResponse).toList();
         return ResponseEntity.ok(response);
     }
 

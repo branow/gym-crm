@@ -22,4 +22,5 @@ public class SimpleCredentials implements Credentials {
     public String getPassword() {
         return password;
     }
+
 }

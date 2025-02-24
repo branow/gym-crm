@@ -25,7 +25,7 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<?> login(
             @RequestBody LoginRequest loginRequest) {
-        var credentials = mapper.toCredentialsDto(loginRequest);
+        var credentials = mapper.mapCredentialsDto(loginRequest);
         service.matchCredentials(credentials);
         return ResponseEntity.ok().build();
     }

@@ -9,25 +9,20 @@ import dev.branow.mappers.TrainingTypeMapper;
 import dev.branow.model.Trainee;
 import dev.branow.model.Trainer;
 import dev.branow.model.Training;
-import dev.branow.model.TrainingType;
 import dev.branow.repositories.TraineeRepository;
 import dev.branow.repositories.TrainerRepository;
 import dev.branow.repositories.TrainingRepository;
-import dev.branow.repositories.TrainingTypeRepository;
 import dev.branow.repositories.criteria.CriteriaTrainingRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
 
 @SpringJUnitConfig({
         TrainingService.class,
@@ -65,14 +60,14 @@ public class TrainingServiceTest extends DBTest {
                 .duration(30)
                 .build();
 
-        var training = mapper.toTraining(createDto);
+        var training = mapper.mapTraining(createDto);
         training.setId(expectedId);
         training.setTrainer(trainer);
         training.setTrainee(trainee);
         training.setType(trainer.getSpecialization());
 
         var actual = service.create(createDto);
-        var expected = mapper.toTrainingDto(training);
+        var expected = mapper.mapTrainingDto(training);
         assertEquals(expected, actual);
     }
 
@@ -94,7 +89,7 @@ public class TrainingServiceTest extends DBTest {
                 dto.getTo(),
                 dto.getTypeId())
                 .stream()
-                .map(mapper::toTrainingDto)
+                .map(mapper::mapTrainingDto)
                 .toList();
         assertEquals(expected, actual);
     }
@@ -116,7 +111,7 @@ public class TrainingServiceTest extends DBTest {
                 dto.getTo(),
                 null)
                 .stream()
-                .map(mapper::toTrainingDto)
+                .map(mapper::mapTrainingDto)
                 .toList();
         assertEquals(expected, actual);
     }

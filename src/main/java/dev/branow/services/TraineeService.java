@@ -34,15 +34,15 @@ public class TraineeService {
     @Transactional
     @Log("getting trainee by username %0")
     public TraineeDto getByUsername(String username) {
-        return mapper.toTraineeDto(repository.getReferenceByUsername(username));
+        return mapper.mapTraineeDto(repository.getReferenceByUsername(username));
     }
 
     @Log("creating trainee with %0")
     public TraineeDto create(CreateTraineeDto dto) {
-        var trainee = mapper.toTrainee(dto);
+        var trainee = mapper.mapTrainee(dto);
         userService.prepareUserForCreation(trainee);
         var savedTrainee = repository.save(trainee);
-        return mapper.toTraineeDto(savedTrainee);
+        return mapper.mapTraineeDto(savedTrainee);
     }
 
     @Transactional
@@ -52,7 +52,7 @@ public class TraineeService {
         userService.applyUserUpdates(trainee, dto);
         trainee.setDateOfBirth(dto.getDateOfBirth());
         trainee.setAddress(dto.getAddress());
-        return mapper.toTraineeDto(trainee);
+        return mapper.mapTraineeDto(trainee);
     }
 
     @Transactional
@@ -85,7 +85,7 @@ public class TraineeService {
         currentTrainers.removeAll(removeTrainers);
 
         return currentTrainers.stream()
-                .map(trainerMapper::toShortTrainerDto)
+                .map(trainerMapper::mapShortTrainerDto)
                 .toList();
     }
 

@@ -57,7 +57,7 @@ public class TraineeServiceTest extends DBTest {
     public void testGetByUsername_withPresentTrainee_returnTrainee() {
         var id = 1L;
         var trainee = manager.find(Trainee.class, id);
-        var traineeDto = mapper.toTraineeDto(trainee);
+        var traineeDto = mapper.mapTraineeDto(trainee);
         var actual = service.getByUsername(trainee.getUsername());
         assertEquals(traineeDto, actual);
     }
@@ -77,7 +77,7 @@ public class TraineeServiceTest extends DBTest {
         createDto.setLastName("Doe");
         createDto.setAddress("address");
         createDto.setDateOfBirth(LocalDate.of(1960, 2, 4));
-        var trainee = mapper.toTrainee(createDto);
+        var trainee = mapper.mapTrainee(createDto);
 
         var query = "select max(id) + 1 from users";
         Long expectedId = (Long) manager.createNativeQuery(query, Long.class).getResultList().getFirst();
@@ -92,7 +92,7 @@ public class TraineeServiceTest extends DBTest {
 
         var actual = service.create(createDto);
 
-        var traineeDto = mapper.toTraineeDto(trainee);
+        var traineeDto = mapper.mapTraineeDto(trainee);
         traineeDto.setUsername(username);
         traineeDto.setPassword(password);
         traineeDto.setIsActive(false);
@@ -118,7 +118,7 @@ public class TraineeServiceTest extends DBTest {
         var actual = service.update(updateDto);
         oldTrainee.setDateOfBirth(updateDto.getDateOfBirth());
         oldTrainee.setAddress(updateDto.getAddress());
-        var expected = mapper.toTraineeDto(oldTrainee);
+        var expected = mapper.mapTraineeDto(oldTrainee);
         assertEquals(expected, actual);
 
         verify(userService, times(1)).applyUserUpdates(oldTrainee, updateDto);

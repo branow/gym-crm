@@ -1,7 +1,6 @@
 package dev.branow.services;
 
 import dev.branow.DBTest;
-import dev.branow.config.ValidationConfig;
 import dev.branow.dtos.service.CreateTrainerDto;
 import dev.branow.dtos.service.ShortTrainerDto;
 import dev.branow.dtos.service.UpdateTrainerDto;
@@ -65,7 +64,7 @@ public class TrainerServiceTest extends DBTest {
                 .filter(trainer -> trainer.getTrainings().stream()
                         .noneMatch(t -> t.getTrainee().getUsername().equals(username)))
                 .filter(User::getIsActive)
-                .map(mapper::toShortTrainerDto)
+                .map(mapper::mapShortTrainerDto)
                 .sorted(comparator)
                 .toList();
         var actual = service.getAllNotAssignedByTraineeUsername(username).stream()
@@ -78,7 +77,7 @@ public class TrainerServiceTest extends DBTest {
     public void testGetByUsername_withPresentTrainer_returnTrainer() {
         var id = 4L;
         var trainer = manager.find(Trainer.class, id);
-        var trainerDto = mapper.toTrainerDto(trainer);
+        var trainerDto = mapper.mapTrainerDto(trainer);
         var actual = service.getByUsername(trainer.getUsername());
         assertEquals(trainerDto, actual);
     }
@@ -94,7 +93,7 @@ public class TrainerServiceTest extends DBTest {
         createDto.setFirstName("Bob");
         createDto.setLastName("Doe");
         createDto.setSpecialization(1L);
-        var trainer = mapper.toTrainer(createDto);
+        var trainer = mapper.mapTrainer(createDto);
 
         var query = "select max(id) + 1 from users";
         Long expectedId = (Long) manager.createNativeQuery(query, Long.class)
@@ -112,7 +111,7 @@ public class TrainerServiceTest extends DBTest {
         var actual = service.create(createDto);
 
         trainer.setSpecialization(TrainingType.builder().id(1L).name("Strength Training").build());
-        var traineeDto = mapper.toTrainerDto(trainer);
+        var traineeDto = mapper.mapTrainerDto(trainer);
         traineeDto.setId(expectedId);
         traineeDto.setUsername("username");
         traineeDto.setPassword("password");
@@ -135,7 +134,7 @@ public class TrainerServiceTest extends DBTest {
         updateDto.setSpecialization(1L);
 
         var actual = service.update(updateDto);
-        var expected = mapper.toTrainerDto(oldTrainee);
+        var expected = mapper.mapTrainerDto(oldTrainee);
         assertNotNull(actual);
         assertEquals(expected, actual);
 
