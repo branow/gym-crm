@@ -22,7 +22,7 @@ public class UserController {
     private final UserService service;
     private final UserMapper mapper;
 
-    @GetMapping("/login")
+    @PostMapping("/login")
     public ResponseEntity<?> login(
             @RequestBody LoginRequest loginRequest) {
         var credentials = mapper.toCredentialsDto(loginRequest);

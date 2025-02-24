@@ -58,7 +58,7 @@ public class UserControllerTest {
         var loginRequest = new LoginRequest("username", "password");
         var credentialsDto = mapper.toCredentialsDto(loginRequest);
 
-        var request = rest(get("/users/login")).content(toJson(loginRequest));
+        var request = rest(post("/users/login")).content(toJson(loginRequest));
         mockMvc.perform(request)
                 .andDo(print())
                 .andExpect(status().isOk());
