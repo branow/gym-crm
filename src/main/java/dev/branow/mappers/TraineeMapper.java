@@ -7,7 +7,6 @@ import dev.branow.dtos.service.*;
 import dev.branow.dtos.response.TraineeResponse;
 import dev.branow.dtos.response.CredentialsResponse;
 import dev.branow.model.Trainee;
-import dev.branow.model.Training;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -74,7 +73,7 @@ public class TraineeMapper {
                 .dateOfBirth(trainee.getDateOfBirth())
                 .address(trainee.getAddress())
                 .isActive(trainee.getIsActive())
-                .trainers(trainee.getTrainers())
+                .favoriteTrainers(trainee.getFavouriteTrainers())
                 .build();
     }
 
@@ -97,16 +96,7 @@ public class TraineeMapper {
                 .isActive(trainee.getIsActive())
                 .trainings(getTrainingDtos(trainee))
                 .favouriteTrainers(getShortFavoriteTrainersDtos(trainee))
-                .trainers(getShortTrainerDtos(trainee))
                 .build();
-    }
-    private List<ShortTrainerDto> getShortTrainerDtos(Trainee trainee) {
-        return Optional.ofNullable(trainee.getTrainings())
-                .orElse(Collections.emptyList()).stream()
-                .map(Training::getTrainer)
-                .map(traineeTrainerMapper::toShortTrainerDto)
-                .distinct()
-                .collect(Collectors.toList());
     }
 
     private List<ShortTrainerDto> getShortFavoriteTrainersDtos(Trainee trainee) {

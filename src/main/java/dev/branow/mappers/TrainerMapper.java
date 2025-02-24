@@ -65,7 +65,7 @@ public class TrainerMapper {
                 .lastName(dto.getLastName())
                 .specialization(dto.getSpecialization().getId())
                 .isActive(dto.getIsActive())
-                .trainees(dto.getTrainees())
+                .favoriteBy(dto.getFavoriteBy())
                 .build();
     }
 
@@ -85,18 +85,16 @@ public class TrainerMapper {
                 .password(trainer.getPassword())
                 .isActive(trainer.getIsActive())
                 .trainings(getTrainingDtos(trainer))
-                .trainees(getShortTraineesDto(trainer))
+                .favoriteBy(getShortFavoriteByDtos(trainer))
                 .specialization(trainingTypeMapper.toTrainingTypeDto(trainer.getSpecialization()))
                 .build();
     }
 
-    private List<ShortTraineeDto> getShortTraineesDto(Trainer trainer) {
-        return Optional.ofNullable(trainer.getTrainings())
+    private List<ShortTraineeDto> getShortFavoriteByDtos(Trainer trainer) {
+        return Optional.ofNullable(trainer.getFavoriteBy())
                 .orElse(Collections.emptyList())
                 .stream()
-                .map(Training::getTrainee)
                 .map(traineeTrainerMapper::toShortTraineeDto)
-                .distinct()
                 .toList();
     }
 

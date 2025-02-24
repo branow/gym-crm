@@ -17,5 +17,5 @@ public class TrainerResponse {
     String lastName;
     Long specialization;
     Boolean isActive;
-    List<ShortTraineeDto> trainees;
+    List<ShortTraineeDto> favoriteBy;
 }

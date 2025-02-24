@@ -19,5 +19,5 @@ public class TrainerDto {
     Boolean isActive;
     TrainingTypeDto specialization;
     List<TrainingDto> trainings;
-    List<ShortTraineeDto> trainees;
+    List<ShortTraineeDto> favoriteBy;
 }

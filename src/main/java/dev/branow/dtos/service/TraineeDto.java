@@ -22,5 +22,4 @@ public class TraineeDto {
     Boolean isActive;
     List<TrainingDto> trainings;
     List<ShortTrainerDto> favouriteTrainers;
-    List<ShortTrainerDto> trainers;
 }

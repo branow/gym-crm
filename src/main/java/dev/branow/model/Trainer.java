@@ -19,4 +19,6 @@ public class Trainer extends User {
     TrainingType specialization;
     @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL)
     List<Training> trainings;
+    @ManyToMany(mappedBy = "favoriteTrainers")
+    List<Trainee> favoriteBy;
 }

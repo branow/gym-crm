@@ -21,5 +21,5 @@ public class TraineeResponse {
     LocalDate dateOfBirth;
     String address;
     Boolean isActive;
-    List<ShortTrainerDto> trainers;
+    List<ShortTrainerDto> favoriteTrainers;
 }
