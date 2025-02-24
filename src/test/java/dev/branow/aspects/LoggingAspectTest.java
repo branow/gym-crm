@@ -4,6 +4,7 @@ import dev.branow.annotations.Log;
 import dev.branow.log.Level;
 import dev.branow.log.LogBuilder;
 import dev.branow.log.LogBuilderFactory;
+import dev.branow.log.UUIDProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -14,6 +15,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -34,7 +37,7 @@ public class LoggingAspectTest {
 
     @Test
     public void testLogExecution_successfulPath() {
-        var signature = "int dev.branow.aspects.LoggingAspectTest$Math.divide(int,int)";
+        var signature = Config.uuid + ": int dev.branow.aspects.LoggingAspectTest$Math.divide(int,int)";
         var operation = "dividing 6 / 2";
         when(logBuilderFactory.newLogBuilder(Level.DEBUG, signature, operation)).thenReturn(logBuilder);
 
@@ -46,7 +49,7 @@ public class LoggingAspectTest {
 
     @Test
     public void testLogExecution_failedPath() {
-        var signature = "int dev.branow.aspects.LoggingAspectTest$Math.divide(int,int)";
+        var signature = Config.uuid + ": int dev.branow.aspects.LoggingAspectTest$Math.divide(int,int)";
         var operation = "dividing 6 / 0";
         when(logBuilderFactory.newLogBuilder(Level.DEBUG, signature, operation)).thenReturn(logBuilder);
 
@@ -59,12 +62,16 @@ public class LoggingAspectTest {
     @Configuration
     @EnableAspectJAutoProxy
     public static class Config {
+        public static final UUID uuid = UUID.randomUUID();
         @Bean
         public Math math() {
             return new Math();
         }
+        @Bean
+        public UUIDProvider uuid() {
+            return () -> uuid;
+        }
     }
-
 
     public static class Math {
         @Log(value = "dividing %0 / %1", level = Level.DEBUG)
@@ -74,14 +81,3 @@ public class LoggingAspectTest {
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
