@@ -1,8 +1,11 @@
 package dev.branow.utils;
 
+import dev.branow.controllers.LoggingFilter;
 import dev.branow.exceptions.WebServerException;
 import org.apache.catalina.Context;
 import org.apache.catalina.startup.Tomcat;
+import org.apache.tomcat.util.descriptor.web.FilterDef;
+import org.apache.tomcat.util.descriptor.web.FilterMap;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 
@@ -17,15 +20,32 @@ public class WebServerFactory {
         tomcat.setBaseDir(createTempTomcatDir());
         tomcat.getHost().setAppBase(".");
         tomcat.getHost().setAutoDeploy(false);
-        setupDispatcherServlet(tomcat, context);
+        var tomcatContext = setupDispatcherServlet(tomcat, context);
+        customize(tomcatContext);
         return tomcat;
     }
 
-    private void setupDispatcherServlet(Tomcat tomcat, WebApplicationContext context) {
+    private void customize(Context context) {
+        registerFilter(context, "Logging", LoggingFilter.class.getName(), "/*");
+    }
+
+    private void registerFilter(Context context, String filterName, String filterClass, String urlPattern) {
+        var filterDef = new FilterDef();
+        filterDef.setFilterName(filterName);
+        filterDef.setFilterClass(filterClass);
+        var filterMap = new FilterMap();
+        filterMap.setFilterName(filterName);
+        filterMap.addURLPattern(urlPattern);
+        context.addFilterDef(filterDef);
+        context.addFilterMap(filterMap);
+    }
+
+    private Context setupDispatcherServlet(Tomcat tomcat, WebApplicationContext context) {
         DispatcherServlet dispatcherServlet = new DispatcherServlet(context);
         Context tomcatContext = tomcat.addContext(tomcat.getHost(), "", null);
         Tomcat.addServlet(tomcatContext, "dispatcher", dispatcherServlet).setLoadOnStartup(1);
         tomcatContext.addServletMappingDecoded("/", "dispatcher");
+        return tomcatContext;
     }
 
     private String createTempTomcatDir() {
