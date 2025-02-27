@@ -27,7 +27,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /users/{username}/change-password:
+  /users/{username}/password:
     put:
       summary: Change user password
       security:
@@ -314,6 +314,43 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
   /trainers:
+    get:
+      summary: Get all trainers not assigned on trainee
+      security:
+        - basicAuth: []
+      parameters:
+        - name: unassigned
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: All not assigned trainers found successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShortTraineeResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        '403':
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        '404':
+          description: Trainee not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     post:
       summary: Create trainer profile
       requestBody:
@@ -414,44 +451,6 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         '422':
           description: Invalid request body
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /trainers/not-assigned/{username}:
-    get:
-      summary: Get all trainers not assigned on trainee
-      security:
-        - basicAuth: []
-      parameters:
-        - name: username
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: All not assigned trainers found successfully
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ShortTraineeResponse"
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        '403':
-          description: Access Denied
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        '404':
-          description: Trainee not found
           content:
             application/json:
               schema:

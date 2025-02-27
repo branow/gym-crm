@@ -32,7 +32,7 @@ public class UserController {
 
     @Authenticate
     @Authorize(UserAuthorizer.Username.class)
-    @PutMapping("/{username}/change-password")
+    @PutMapping("/{username}/password")
     public ResponseEntity<?> changePassword(
             @PathVariable("username") String username,
             @RequestBody @Valid ChangePasswordDto dto

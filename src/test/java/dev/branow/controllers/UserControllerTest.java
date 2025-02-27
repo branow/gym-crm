@@ -72,7 +72,7 @@ public class UserControllerTest {
                 .oldPassword("oldPassword")
                 .newPassword("newPassword")
                 .build();
-        var request = rest(put("/users/John.Doe/change-password"))
+        var request = rest(put("/users/John.Doe/password"))
                 .content(toJson(password));
         mockMvc.perform(request)
                 .andDo(print())
@@ -83,7 +83,7 @@ public class UserControllerTest {
     @ParameterizedTest
     @MethodSource("provideTestChangePassword_invalidPassword_return422")
     public void testChangePassword_invalidPassword_return422(ChangePasswordDto password) throws Exception {
-        var request = rest(put("/users/John.Doe/change-password"))
+        var request = rest(put("/users/John.Doe/password"))
                 .content(toJson(password));
         mockMvc.perform(request)
                 .andDo(print())

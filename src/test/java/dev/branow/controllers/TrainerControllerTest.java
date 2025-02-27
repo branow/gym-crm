@@ -261,7 +261,7 @@ public class TrainerControllerTest {
 
         when(service.getAllNotAssignedByTraineeUsername(username)).thenReturn(shortTrainerDtos);
 
-        var request = rest(get("/trainers/not-assigned/{username}", username));
+        var request = rest(get("/trainers?unassigned={username}", username));
         mockMvc.perform(request)
                 .andDo(print())
                 .andExpect(status().isOk())

@@ -66,9 +66,10 @@ public class TrainerController {
 
     @Authenticate
     @Authorize(UserAuthorizer.Username.class)
-    @GetMapping("/not-assigned/{username}")
+    @GetMapping
     public ResponseEntity<List<ShortTrainerDto>> getAllNotAssigned(
-            @PathVariable("username") String username) {
+            @RequestParam("unassigned") String username
+    ) {
         var trainers = service.getAllNotAssignedByTraineeUsername(username);
         return ResponseEntity.ok(trainers);
     }
