@@ -1,23 +1,13 @@
 package dev.branow;
 
-import dev.branow.config.Config;
-import dev.branow.utils.WebServerFactory;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.LifecycleException;
-import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@Slf4j
+@SpringBootApplication
 public class Main {
 
-    public static void main(String[] args) throws LifecycleException {
-        try (var context = new AnnotationConfigWebApplicationContext()) {
-            context.register(Config.class);
-
-            var tomcat = new WebServerFactory().getTomcatServer(context);
-            tomcat.start();
-            log.info("Tomcat server started on port {}", tomcat.getConnector().getPort());
-            tomcat.getServer().await();
-        }
+    public static void main(String[] args) {
+        SpringApplication.run(Main.class, args);
     }
 
 }

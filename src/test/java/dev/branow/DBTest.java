@@ -3,22 +3,24 @@ package dev.branow;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.flywaydb.core.Flyway;
-import org.h2.tools.RunScript;
 import org.hibernate.cfg.AvailableSettings;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.testcontainers.containers.PostgreSQLContainer;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -61,12 +63,9 @@ public abstract class DBTest {
     }
 
     @Autowired
-    private Flyway flyway;
-    @Autowired
     protected EntityManagerFactory factory;
-
+    protected EntityManager em;
     protected TransactionalEntityManager manager;
-    private EntityManager em;
 
     @BeforeEach
     void setUp() {
@@ -75,10 +74,14 @@ public abstract class DBTest {
 
         System.out.println("Cleaning up database");
         drop();
-        System.out.println("Migrating");
+
+        System.out.println("Migrate database");
         migrate();
+
         System.out.println("Filling up database");
         fill();
+
+        em.clear();
     }
 
     @AfterEach
@@ -90,16 +93,21 @@ public abstract class DBTest {
         em.close();
     }
 
-    protected void migrate() {
-        flyway.migrate();
-    }
-
     protected void fill() {
         try {
-            execute(Files.newBufferedReader(DATA_PATH));
+            execute(Files.readString(DATA_PATH));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    protected void migrate() {
+        var flyway = Flyway.configure()
+                .driver(postgres.getDriverClassName())
+                .dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
+                .baselineOnMigrate(true)
+                .load();
+        flyway.migrate();
     }
 
     protected void drop() {
@@ -108,13 +116,9 @@ public abstract class DBTest {
     }
 
     protected void execute(String sql) {
-        execute(new StringReader(sql));
-    }
-
-    protected void execute(Reader sql) {
         try (Connection connection = DriverManager.getConnection(
                 postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())) {
-            RunScript.execute(connection, sql);
+            ScriptUtils.executeSqlScript(connection, new InputStreamResource(new ByteArrayInputStream(sql.getBytes())));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
