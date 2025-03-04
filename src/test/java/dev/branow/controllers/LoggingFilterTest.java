@@ -126,7 +126,7 @@ public class LoggingFilterTest {
     }
 
     private static String getCommonPattern(String logLevel) {
-        return "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2} \\[main\\] " +  logLevel + "  d\\.branow\\.controllers\\.LoggingFilter - [0-9a-f-]+";
+        return "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2} \\[main\\] " +  logLevel + " dev\\.branow\\.controllers\\.LoggingFilter -- [0-9a-f-]+";
     }
 
 }
