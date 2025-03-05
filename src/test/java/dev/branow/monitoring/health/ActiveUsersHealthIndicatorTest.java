@@ -1,33 +1,33 @@
 package dev.branow.monitoring.health;
 
-import dev.branow.model.Training;
-import dev.branow.model.TrainingType;
-import dev.branow.repositories.TrainingRepository;
+import dev.branow.model.User;
+import dev.branow.repositories.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
-@SpringJUnitConfig(PlannedTrainingsIndicator.class)
-public class PlannedTrainingsIndicatorTest {
+@SpringJUnitConfig(ActiveUsersHealthIndicator.class)
+public class ActiveUsersHealthIndicatorTest {
 
     @MockitoBean
-    private TrainingRepository repository;
+    private UserRepository repository;
 
     @Autowired
-    private PlannedTrainingsIndicator indicator;
+    private ActiveUsersHealthIndicator indicator;
 
     @Test
     public void testHealth_up() {
         when(repository.findAll()).thenReturn(List.of(
-                Training.builder().date(LocalDate.now().plusDays(3)).build()
+                User.builder().isActive(true).build(),
+                User.builder().isActive(false).build(),
+                User.builder().isActive(false).build()
         ));
         assertEquals(Status.UP, indicator.health().getStatus());
     }
@@ -35,8 +35,11 @@ public class PlannedTrainingsIndicatorTest {
     @Test
     public void testHealth_down() {
         when(repository.findAll()).thenReturn(List.of(
-                Training.builder().date(LocalDate.now().minusDays(3)).build()
+                User.builder().isActive(false).build(),
+                User.builder().isActive(false).build(),
+                User.builder().isActive(false).build()
         ));
         assertEquals(Status.DOWN, indicator.health().getStatus());
     }
+
 }

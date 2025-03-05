@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Component("trainingTypeAvailability")
 @RequiredArgsConstructor
-public class TrainingTypeAvailabilityIndicator implements HealthIndicator {
+public class TrainingTypeHealthIndicator implements HealthIndicator {
 
     private final TrainingTypeRepository repository;
 

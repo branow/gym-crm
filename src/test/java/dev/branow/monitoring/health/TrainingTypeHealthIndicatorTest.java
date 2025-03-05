@@ -1,7 +1,7 @@
 package dev.branow.monitoring.health;
 
-import dev.branow.model.User;
-import dev.branow.repositories.UserRepository;
+import dev.branow.model.TrainingType;
+import dev.branow.repositories.TrainingTypeRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Status;
@@ -13,30 +13,26 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
-@SpringJUnitConfig(InactiveUsersIndicator.class)
-public class InactiveUsersIndicatorTest {
+@SpringJUnitConfig(TrainingTypeHealthIndicator.class)
+public class TrainingTypeHealthIndicatorTest {
 
     @MockitoBean
-    private UserRepository repository;
+    private TrainingTypeRepository repository;
 
     @Autowired
-    private InactiveUsersIndicator indicator;
+    private TrainingTypeHealthIndicator indicator;
 
     @Test
     public void testHealth_up() {
         when(repository.findAll()).thenReturn(List.of(
-                User.builder().isActive(true).build(),
-                User.builder().isActive(true).build()
+                new TrainingType(1L, "")
         ));
         assertEquals(Status.UP, indicator.health().getStatus());
     }
 
     @Test
     public void testHealth_down() {
-        when(repository.findAll()).thenReturn(List.of(
-                User.builder().isActive(true).build(),
-                User.builder().isActive(false).build()
-        ));
+        when(repository.findAll()).thenReturn(List.of());
         assertEquals(Status.DOWN, indicator.health().getStatus());
     }
 
