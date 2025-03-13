@@ -1,8 +1,6 @@
 package dev.branow.controllers;
 
 import dev.branow.dtos.response.ErrorResponse;
-import dev.branow.exceptions.AccessDeniedException;
-import dev.branow.exceptions.BadCredentialsException;
 import dev.branow.model.User;
 import jakarta.validation.ValidationException;
 import org.hibernate.ObjectNotFoundException;
@@ -180,22 +178,6 @@ public class CustomExceptionHandlerTest {
                                 .status(404)
                                 .title("Entity Not Found")
                                 .message("No entity User found by identifier 2")
-                                .build()
-                ),
-                Arguments.of(
-                        new BadCredentialsException(),
-                        ErrorResponse.builder()
-                                .status(401)
-                                .title("Bad Credentials")
-                                .message("Invalid username or password")
-                                .build()
-                ),
-                Arguments.of(
-                        new AccessDeniedException("User are not permitted to do operation"),
-                        ErrorResponse.builder()
-                                .status(403)
-                                .title("Access Denied")
-                                .message("User are not permitted to do operation")
                                 .build()
                 ),
                 Arguments.of(

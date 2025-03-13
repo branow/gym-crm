@@ -1,8 +1,5 @@
 package dev.branow.controllers;
 
-import dev.branow.annotations.Authenticate;
-import dev.branow.annotations.Authorize;
-import dev.branow.auth.authorizers.UserAuthorizer;
 import dev.branow.dtos.request.CreateTrainerRequest;
 import dev.branow.dtos.request.UpdateTrainerRequest;
 import dev.branow.dtos.response.CredentialsResponse;
@@ -42,8 +39,6 @@ public class TrainerController {
         return ResponseEntity.status(HttpStatus.CREATED).body(credentials);
     }
 
-    @Authenticate
-    @Authorize(UserAuthorizer.Username.class)
     @GetMapping("/{username}")
     public ResponseEntity<TrainerResponse> get(@PathVariable("username") String username) {
         var trainer = service.getByUsername(username);
@@ -51,8 +46,6 @@ public class TrainerController {
         return ResponseEntity.ok(response);
     }
 
-    @Authenticate
-    @Authorize(UserAuthorizer.Username.class)
     @PutMapping("/{username}")
     public ResponseEntity<TrainerResponse> update(
             @PathVariable("username") String username,
@@ -64,8 +57,6 @@ public class TrainerController {
         return ResponseEntity.ok(response);
     }
 
-    @Authenticate
-    @Authorize(UserAuthorizer.Username.class)
     @GetMapping
     public ResponseEntity<List<ShortTrainerDto>> getAllNotAssigned(
             @RequestParam("unassigned") String username
@@ -74,8 +65,6 @@ public class TrainerController {
         return ResponseEntity.ok(trainers);
     }
 
-    @Authenticate
-    @Authorize(UserAuthorizer.Username.class)
     @GetMapping("/{username}/trainings")
     public ResponseEntity<List<TrainingResponse>> getTrainings(
             @PathVariable("username") String username,

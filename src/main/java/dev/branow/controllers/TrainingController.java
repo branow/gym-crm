@@ -1,8 +1,5 @@
 package dev.branow.controllers;
 
-import dev.branow.annotations.Authenticate;
-import dev.branow.annotations.Authorize;
-import dev.branow.auth.authorizers.UserAuthorizer;
 import dev.branow.dtos.request.CreateTrainingRequest;
 import dev.branow.mappers.TrainingMapper;
 import dev.branow.services.TrainingService;
@@ -25,8 +22,6 @@ public class TrainingController {
     private final TrainingService service;
     private final TrainingMapper mapper;
 
-    @Authenticate
-    @Authorize(UserAuthorizer.CreateTrainingRequest.class)
     @PostMapping
     public ResponseEntity<?> create(
             @RequestBody @Valid CreateTrainingRequest request

@@ -1,6 +1,5 @@
 package dev.branow.controllers;
 
-import dev.branow.annotations.Authenticate;
 import dev.branow.dtos.response.TrainingTypeResponse;
 import dev.branow.mappers.TrainingTypeMapper;
 import dev.branow.services.TrainingTypeService;
@@ -20,7 +19,6 @@ public class TrainingTypeController {
     private final TrainingTypeService service;
     private final TrainingTypeMapper mapper;
 
-    @Authenticate
     @GetMapping
     public ResponseEntity<List<TrainingTypeResponse>> getAll() {
         var types = service.getAll().stream()

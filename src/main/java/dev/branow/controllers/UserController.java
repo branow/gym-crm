@@ -1,8 +1,5 @@
 package dev.branow.controllers;
 
-import dev.branow.annotations.Authenticate;
-import dev.branow.annotations.Authorize;
-import dev.branow.auth.authorizers.UserAuthorizer;
 import dev.branow.dtos.request.LoginRequest;
 import dev.branow.dtos.service.ChangePasswordDto;
 import dev.branow.mappers.UserMapper;
@@ -30,8 +27,6 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @Authenticate
-    @Authorize(UserAuthorizer.Username.class)
     @PutMapping("/{username}/password")
     public ResponseEntity<?> changePassword(
             @PathVariable("username") String username,
@@ -41,8 +36,6 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @Authenticate
-    @Authorize(UserAuthorizer.Username.class)
     @PatchMapping("/{username}/toggle")
     public ResponseEntity<?> toggleActivation(@PathVariable("username") String username) {
         service.toggleActive(username);

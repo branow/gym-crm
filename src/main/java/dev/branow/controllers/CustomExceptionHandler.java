@@ -1,8 +1,6 @@
 package dev.branow.controllers;
 
 import dev.branow.dtos.response.ErrorResponse;
-import dev.branow.exceptions.AccessDeniedException;
-import dev.branow.exceptions.BadCredentialsException;
 import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.ObjectNotFoundException;
@@ -37,8 +35,6 @@ public class CustomExceptionHandler {
         titles.put(MethodArgumentNotValidException.class, "Validation Error");
         titles.put(ValidationException.class, "Validation Error");
         titles.put(HttpMessageNotReadableException.class, "Validation Error");
-        titles.put(BadCredentialsException.class, "Bad Credentials");
-        titles.put(AccessDeniedException.class, "Access Denied");
         titles.put(IllegalArgumentException.class, "Bad Request");
         titles.put(HttpRequestMethodNotSupportedException.class, "Method Not Supported");
         titles.put(HttpMediaTypeNotSupportedException.class, "Media Type Not Supported");
@@ -61,24 +57,6 @@ public class CustomExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBadRequest(Exception ex) {
         return buildResponse(ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
-                .title(titles.get(ex.getClass()))
-                .message(ex.getMessage())
-                .build());
-    }
-
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex) {
-        return buildResponse(ErrorResponse.builder()
-                .status(HttpStatus.UNAUTHORIZED.value())
-                .title(titles.get(ex.getClass()))
-                .message(ex.getMessage())
-                .build());
-    }
-
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
-        return buildResponse(ErrorResponse.builder()
-                .status(HttpStatus.FORBIDDEN.value())
                 .title(titles.get(ex.getClass()))
                 .message(ex.getMessage())
                 .build());

@@ -4,7 +4,6 @@ import dev.branow.DBTest;
 import dev.branow.dtos.service.ChangePasswordDto;
 import dev.branow.dtos.service.CredentialsDto;
 import dev.branow.dtos.service.UpdateUserDto;
-import dev.branow.exceptions.BadCredentialsException;
 import dev.branow.mappers.UserMapper;
 import dev.branow.model.User;
 import dev.branow.utils.PasswordGenerator;
@@ -73,13 +72,13 @@ public class UserServiceTest extends DBTest {
     @Test
     public void testMatchCredentials_invalidUsername_throwException() {
         var credentials = CredentialsDto.builder().username("John.Doe1").password("RM9AVLZpCK").build();
-        assertThrows(BadCredentialsException.class, () -> service.matchCredentials(credentials));
+        assertThrows(IllegalStateException.class, () -> service.matchCredentials(credentials));
     }
 
     @Test
     public void testMatchCredentials_invalidPassword_throwException() {
         var credentials = CredentialsDto.builder().username("John.Doe").password("rM9AVLZpCK").build();
-        assertThrows(BadCredentialsException.class, () -> service.matchCredentials(credentials));
+        assertThrows(IllegalStateException.class, () -> service.matchCredentials(credentials));
     }
 
     @Test

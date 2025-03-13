@@ -1,8 +1,5 @@
 package dev.branow.controllers;
 
-import dev.branow.annotations.Authenticate;
-import dev.branow.annotations.Authorize;
-import dev.branow.auth.authorizers.UserAuthorizer;
 import dev.branow.dtos.request.CreateTraineeRequest;
 import dev.branow.dtos.request.UpdateFavoriteTrainersRequest;
 import dev.branow.dtos.request.UpdateTraineeRequest;
@@ -43,16 +40,12 @@ public class TraineeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(credentials);
     }
 
-    @Authenticate
-    @Authorize(UserAuthorizer.Username.class)
     @GetMapping("/{username}")
     public ResponseEntity<TraineeResponse> get(@PathVariable("username") String username) {
         var trainee = mapper.mapTraineeResponse(service.getByUsername(username));
         return ResponseEntity.ok(trainee);
     }
 
-    @Authenticate
-    @Authorize(UserAuthorizer.Username.class)
     @PutMapping("/{username}")
     public ResponseEntity<TraineeResponse> update(
             @PathVariable("username") String username,
@@ -64,16 +57,12 @@ public class TraineeController {
         return ResponseEntity.ok(response);
     }
 
-    @Authenticate
-    @Authorize(UserAuthorizer.Username.class)
     @DeleteMapping("/{username}")
     public ResponseEntity<?> delete(@PathVariable("username") String username) {
         service.deleteByUsername(username);
         return ResponseEntity.noContent().build();
     }
 
-    @Authenticate
-    @Authorize(UserAuthorizer.Username.class)
     @PutMapping("/{username}/favorite-trainers")
     public ResponseEntity<List<ShortTrainerDto>> updateFavouriteTrainers(
             @PathVariable("username") String username,
@@ -84,8 +73,6 @@ public class TraineeController {
         return ResponseEntity.ok(trainers);
     }
 
-    @Authenticate
-    @Authorize(UserAuthorizer.Username.class)
     @GetMapping("/{username}/trainings")
     public ResponseEntity<List<TrainingResponse>> getTrainings(
             @PathVariable("username") String username,

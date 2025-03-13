@@ -4,7 +4,6 @@ import dev.branow.annotations.Log;
 import dev.branow.dtos.service.ChangePasswordDto;
 import dev.branow.dtos.service.CredentialsDto;
 import dev.branow.dtos.service.UpdateUserDto;
-import dev.branow.exceptions.BadCredentialsException;
 import dev.branow.log.Level;
 import dev.branow.model.User;
 import dev.branow.repositories.UserRepository;
@@ -50,7 +49,7 @@ public class UserService {
     public void matchCredentials(CredentialsDto credentials) {
         repository.findByUsername(credentials.getUsername())
                 .filter(user -> user.getPassword().equals(credentials.getPassword()))
-                .orElseThrow(BadCredentialsException::new);
+                .orElseThrow(IllegalStateException::new); // TODO CORRECT EXCEPTION
     }
 
     @Transactional
