@@ -43,12 +43,14 @@ public class TrainerService {
     @Log("creating trainer with %0")
     public TrainerDto create(CreateTrainerDto dto) {
         var trainer = mapper.mapTrainer(dto);
-        userService.prepareUserForCreation(trainer);
+        var password = userService.prepareUserForCreation(trainer);
         var trainingType = trainingTypeRepository.findById(dto.getSpecialization())
                 .orElseThrow(() -> new ValidationException("Specialization not found by identifier " + dto.getSpecialization()));
         trainer.setSpecialization(trainingType);
         var savedTrainer = repository.save(trainer);
-        return mapper.mapTrainerDto(savedTrainer);
+        var trainerDto = mapper.mapTrainerDto(savedTrainer);
+        trainerDto.setPassword(password);
+        return trainerDto;
     }
 
     @Transactional

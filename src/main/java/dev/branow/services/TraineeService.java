@@ -40,9 +40,11 @@ public class TraineeService {
     @Log("creating trainee with %0")
     public TraineeDto create(CreateTraineeDto dto) {
         var trainee = mapper.mapTrainee(dto);
-        userService.prepareUserForCreation(trainee);
+        var password = userService.prepareUserForCreation(trainee);
         var savedTrainee = repository.save(trainee);
-        return mapper.mapTraineeDto(savedTrainee);
+        var traineeDto = mapper.mapTraineeDto(savedTrainee);
+        traineeDto.setPassword(password);
+        return traineeDto;
     }
 
     @Transactional

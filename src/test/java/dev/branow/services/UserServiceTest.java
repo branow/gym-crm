@@ -2,7 +2,6 @@ package dev.branow.services;
 
 import dev.branow.DBTest;
 import dev.branow.dtos.service.ChangePasswordDto;
-import dev.branow.dtos.service.CredentialsDto;
 import dev.branow.dtos.service.UpdateUserDto;
 import dev.branow.mappers.UserMapper;
 import dev.branow.model.User;
@@ -61,24 +60,6 @@ public class UserServiceTest extends DBTest {
         assertEquals(expectedUser.getLastName(), actualUser.getLastName());
         assertEquals(expectedUser.getPassword(), actualUser.getPassword());
         assertEquals(expectedUser.getIsActive(), actualUser.getIsActive());
-    }
-
-    @Test
-    public void testMatchCredentials_matchCredentials_doesNotThrowException() {
-        var credentials = CredentialsDto.builder().username("John.Doe").password("RM9AVLZpCK").build();
-        assertDoesNotThrow(() -> service.matchCredentials(credentials));
-    }
-
-    @Test
-    public void testMatchCredentials_invalidUsername_throwException() {
-        var credentials = CredentialsDto.builder().username("John.Doe1").password("RM9AVLZpCK").build();
-        assertThrows(IllegalStateException.class, () -> service.matchCredentials(credentials));
-    }
-
-    @Test
-    public void testMatchCredentials_invalidPassword_throwException() {
-        var credentials = CredentialsDto.builder().username("John.Doe").password("rM9AVLZpCK").build();
-        assertThrows(IllegalStateException.class, () -> service.matchCredentials(credentials));
     }
 
     @Test

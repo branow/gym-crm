@@ -7,6 +7,8 @@ import dev.branow.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,13 +19,13 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService service;
-    private final UserMapper mapper;
+    private final AuthenticationManager authenticationManager;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(
             @RequestBody LoginRequest loginRequest) {
-        var credentials = mapper.mapCredentialsDto(loginRequest);
-        service.matchCredentials(credentials);
+        var token = new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword());
+        authenticationManager.authenticate(token);
         return ResponseEntity.ok().build();
     }
 

@@ -7,6 +7,7 @@ import org.hibernate.ObjectNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -31,6 +32,7 @@ public class CustomExceptionHandler {
     private final Map<Class<? extends Exception>, String> titles = new HashMap<>();
 
     {
+        titles.put(BadCredentialsException.class, "Bad Credentials");
         titles.put(ObjectNotFoundException.class, "Entity Not Found");
         titles.put(MethodArgumentNotValidException.class, "Validation Error");
         titles.put(ValidationException.class, "Validation Error");
@@ -59,6 +61,15 @@ public class CustomExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST.value())
                 .title(titles.get(ex.getClass()))
                 .message(ex.getMessage())
+                .build());
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex) {
+        return buildResponse(ErrorResponse.builder()
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .title(titles.get(ex.getClass()))
+                .message("Invalid username or password")
                 .build());
     }
 

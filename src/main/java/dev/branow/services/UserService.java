@@ -5,6 +5,7 @@ import dev.branow.dtos.service.ChangePasswordDto;
 import dev.branow.dtos.service.CredentialsDto;
 import dev.branow.dtos.service.UpdateUserDto;
 import dev.branow.log.Level;
+import dev.branow.mappers.UserMapper;
 import dev.branow.model.User;
 import dev.branow.repositories.UserRepository;
 import dev.branow.utils.PasswordGenerator;
@@ -14,14 +15,20 @@ import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserService implements UserDetailsService {
 
     private final UserRepository repository;
+    private final UserMapper mapper;
+    private final PasswordEncoder encoder;
     private final PasswordGenerator passwordGenerator;
     private final UsernameGenerator usernameGenerator;
 
@@ -30,26 +37,27 @@ public class UserService {
         return repository.getReferenceByUsername(username);
     }
 
-    public void prepareUserForCreation(User user) {
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return repository.findByUsername(username)
+                .map(mapper::mapUserDetailsDto)
+                .orElseThrow(() -> new UsernameNotFoundException(username));
+    }
+
+    public String prepareUserForCreation(User user) {
         var username = generateUsername(user);
         var password = generatePassword();
+        var encodedPassword = encoder.encode(password);
         user.setUsername(username);
-        user.setPassword(password);
+        user.setPassword(encodedPassword);
         user.setIsActive(false);
+        return password;
     }
 
     public void applyUserUpdates(User user, UpdateUserDto dto) {
         user.setIsActive(dto.getIsActive());
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
-    }
-
-    @Transactional
-    @Log("matching user credentials")
-    public void matchCredentials(CredentialsDto credentials) {
-        repository.findByUsername(credentials.getUsername())
-                .filter(user -> user.getPassword().equals(credentials.getPassword()))
-                .orElseThrow(IllegalStateException::new); // TODO CORRECT EXCEPTION
     }
 
     @Transactional
