@@ -23,6 +23,13 @@ public class TraineeMapper {
     private final TrainingMapper trainingMapper;
     private final TraineeTrainerMapper traineeTrainerMapper;
 
+    public UserDetailsDto mapUserDetailsDto(TraineeDto dto) {
+        return UserDetailsDto.builder()
+                .username(dto.getUsername())
+                .password(dto.getPassword())
+                .build();
+    }
+
     public CreateTraineeDto mapCreateTraineeDto(CreateTraineeRequest request) {
         return CreateTraineeDto.builder()
                 .firstName(request.getFirstName())
@@ -77,10 +84,11 @@ public class TraineeMapper {
                 .build();
     }
 
-    public CredentialsResponse mapCredentialsResponse(TraineeDto dto) {
+    public CredentialsResponse mapCredentialsResponse(TraineeDto dto, String jwt) {
         return CredentialsResponse.builder()
                 .username(dto.getUsername())
                 .password(dto.getPassword())
+                .jwt(jwt)
                 .build();
     }
 

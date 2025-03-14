@@ -4,8 +4,10 @@ import dev.branow.dtos.request.CreateTraineeRequest;
 import dev.branow.dtos.request.UpdateFavoriteTrainersRequest;
 import dev.branow.dtos.request.UpdateTraineeRequest;
 import dev.branow.dtos.service.CriteriaTrainingTraineeDto;
+import dev.branow.dtos.service.UserDetailsDto;
 import dev.branow.mappers.*;
 import dev.branow.model.Trainer;
+import dev.branow.security.JwtService;
 import dev.branow.services.TraineeService;
 import dev.branow.services.TrainingService;
 import org.junit.jupiter.api.Test;
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.web.servlet.MockMvc;
@@ -49,6 +52,8 @@ public class TraineeControllerTest {
     private TraineeService service;
     @MockitoBean
     private TrainingService trainingService;
+    @MockitoBean
+    private JwtService jwtService;
 
     @Autowired
     private TraineeTrainerMapper traineeTrainerMapper;
@@ -71,6 +76,7 @@ public class TraineeControllerTest {
 
     @Test
     public void testCreate() throws Exception {
+        var jwt = "token";
         var traineeDto = mapper.mapTraineeDto(nextTrainee(null));
         var createTraineeRequest = CreateTraineeRequest.builder()
                 .firstName(traineeDto.getFirstName())
@@ -79,9 +85,10 @@ public class TraineeControllerTest {
                 .dateOfBirth(traineeDto.getDateOfBirth())
                 .build();
         var createTraineeDto = mapper.mapCreateTraineeDto(createTraineeRequest);
-        var credentialsResponse = mapper.mapCredentialsResponse(traineeDto);
+        var credentialsResponse = mapper.mapCredentialsResponse(traineeDto, jwt);
 
         when(service.create(createTraineeDto)).thenReturn(traineeDto);
+        when(jwtService.generate(any(UserDetails.class))).thenReturn(jwt);
 
         var request = rest(post("/trainees")).content(toJson(createTraineeRequest));
         mockMvc.perform(request)

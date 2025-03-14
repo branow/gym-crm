@@ -5,11 +5,9 @@ import lombok.experimental.FieldDefaults;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CredentialsResponse {
-    String username;
-    String password;
+public class JwtResponse {
     String jwt;
 }

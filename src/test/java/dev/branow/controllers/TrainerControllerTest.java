@@ -7,6 +7,7 @@ import dev.branow.mappers.TraineeTrainerMapper;
 import dev.branow.mappers.TrainerMapper;
 import dev.branow.mappers.TrainingMapper;
 import dev.branow.mappers.TrainingTypeMapper;
+import dev.branow.security.JwtService;
 import dev.branow.services.TrainerService;
 import dev.branow.services.TrainingService;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.web.servlet.MockMvc;
@@ -50,6 +52,8 @@ public class TrainerControllerTest {
     private TrainerService service;
     @MockitoBean
     private TrainingService trainingService;
+    @MockitoBean
+    private JwtService jwtService;
 
     @Autowired
     private TrainingTypeMapper trainingTypeMapper;
@@ -74,6 +78,7 @@ public class TrainerControllerTest {
 
     @Test
     public void testCreate() throws Exception {
+        var jwt = "token";
         var trainerDto = mapper.mapTrainerDto(nextTrainer(nextTrainingType(), null));
         var createTrainerRequest = CreateTrainerRequest.builder()
                 .firstName(trainerDto.getFirstName())
@@ -81,9 +86,10 @@ public class TrainerControllerTest {
                 .specialization(trainerDto.getSpecialization().getId())
                 .build();
         var createTrainerDto = mapper.mapCreateTrainerDto(createTrainerRequest);
-        var credentialsResponse = mapper.mapCredentialsResponse(trainerDto);
+        var credentialsResponse = mapper.mapCredentialsResponse(trainerDto, jwt);
 
         when(service.create(createTrainerDto)).thenReturn(trainerDto);
+        when(jwtService.generate(any(UserDetails.class))).thenReturn(jwt);
 
         var request = rest(post("/trainers")).content(toJson(createTrainerRequest));
         mockMvc.perform(request)

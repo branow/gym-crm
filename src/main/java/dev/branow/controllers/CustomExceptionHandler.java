@@ -1,13 +1,16 @@
 package dev.branow.controllers;
 
 import dev.branow.dtos.response.ErrorResponse;
+import dev.branow.exceptions.LoginAttemptLimitExceededException;
 import jakarta.validation.ValidationException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.ObjectNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -27,12 +30,15 @@ import java.util.Map;
 
 @Slf4j
 @ControllerAdvice
+@RequiredArgsConstructor
 public class CustomExceptionHandler {
 
     private final Map<Class<? extends Exception>, String> titles = new HashMap<>();
 
     {
+        titles.put(AuthenticationException.class, "Authentication Error");
         titles.put(BadCredentialsException.class, "Bad Credentials");
+        titles.put(LoginAttemptLimitExceededException.class, "Login Attempt Limit Exceeded");
         titles.put(ObjectNotFoundException.class, "Entity Not Found");
         titles.put(MethodArgumentNotValidException.class, "Validation Error");
         titles.put(ValidationException.class, "Validation Error");
@@ -70,6 +76,15 @@ public class CustomExceptionHandler {
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .title(titles.get(ex.getClass()))
                 .message("Invalid username or password")
+                .build());
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException ex) {
+        return buildResponse(ErrorResponse.builder()
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .title(titles.get(ex.getClass()))
+                .message(ex.getMessage())
                 .build());
     }
 

@@ -9,6 +9,7 @@ import dev.branow.dtos.response.CredentialsResponse;
 import dev.branow.dtos.response.TraineeResponse;
 import dev.branow.mappers.TraineeMapper;
 import dev.branow.mappers.TrainingMapper;
+import dev.branow.security.JwtService;
 import dev.branow.services.TraineeService;
 import dev.branow.services.TrainingService;
 import jakarta.validation.Valid;
@@ -31,12 +32,14 @@ public class TraineeController {
     private final TraineeMapper mapper;
     private final TrainingService trainingService;
     private final TrainingMapper trainingMapper;
+    private final JwtService jwtService;
 
     @PostMapping
     public ResponseEntity<CredentialsResponse> create(@RequestBody @Valid CreateTraineeRequest request) {
         var dto = mapper.mapCreateTraineeDto(request);
         var trainee = service.create(dto);
-        var credentials = mapper.mapCredentialsResponse(trainee);
+        var user = mapper.mapUserDetailsDto(trainee);
+        var credentials = mapper.mapCredentialsResponse(trainee, jwtService.generate(user));
         return ResponseEntity.status(HttpStatus.CREATED).body(credentials);
     }
 

@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -25,8 +26,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @SpringJUnitConfig({
-        UserService.class,
-        UserMapper.class
+        UserMapper.class,
+        UserService.class
 })
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest extends DBTest {
@@ -35,6 +36,8 @@ public class UserServiceTest extends DBTest {
     private PasswordGenerator passwordGenerator;
     @MockitoBean
     private UsernameGenerator usernameGenerator;
+    @MockitoBean
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private EntityManager manager;
@@ -78,6 +81,7 @@ public class UserServiceTest extends DBTest {
 
         when(usernameGenerator.generate(eq(user), any())).thenReturn(username);
         when(passwordGenerator.generate()).thenReturn(password);
+        when(passwordEncoder.encode(password)).thenReturn(password);
 
         service.prepareUserForCreation(user);
 

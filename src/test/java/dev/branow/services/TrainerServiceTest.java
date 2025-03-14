@@ -105,7 +105,7 @@ public class TrainerServiceTest extends DBTest {
             user.setUsername("username");
             user.setPassword("password");
             user.setIsActive(false);
-            return null;
+            return "password";
         }).when(userService).prepareUserForCreation(trainer);
 
         var actual = service.create(createDto);

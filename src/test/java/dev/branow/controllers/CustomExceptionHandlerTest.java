@@ -1,6 +1,7 @@
 package dev.branow.controllers;
 
 import dev.branow.dtos.response.ErrorResponse;
+import dev.branow.exceptions.LoginAttemptLimitExceededException;
 import dev.branow.model.User;
 import jakarta.validation.ValidationException;
 import org.hibernate.ObjectNotFoundException;
@@ -14,6 +15,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -93,38 +97,6 @@ public class CustomExceptionHandlerTest {
     private static Stream<Arguments> provideTestHandle() throws NoSuchMethodException {
         return Stream.of(
                 Arguments.of(
-                        new Exception("Unknown exception"),
-                        ErrorResponse.builder()
-                                .status(500)
-                                .title("Internal Server Error")
-                                .message("Unknown exception")
-                                .build()
-                ),
-                Arguments.of(
-                        new HttpRequestMethodNotSupportedException("GET"),
-                        ErrorResponse.builder()
-                                .status(405)
-                                .title("Method Not Supported")
-                                .message("Request method 'GET' is not supported")
-                                .build()
-                ),
-                Arguments.of(
-                        new HttpMediaTypeNotSupportedException("Exception message"),
-                        ErrorResponse.builder()
-                                .status(415)
-                                .title("Media Type Not Supported")
-                                .message("Exception message")
-                                .build()
-                ),
-                Arguments.of(
-                        new HttpMediaTypeNotAcceptableException("Exception message"),
-                        ErrorResponse.builder()
-                                .status(406)
-                                .title("Media Type Not Acceptable")
-                                .message("Exception message")
-                                .build()
-                ),
-                Arguments.of(
                         new MissingPathVariableException("data", new MethodParameter(TestController.class.getMethod("testMethod", String.class), 0)),
                         ErrorResponse.builder()
                                 .status(400)
@@ -157,19 +129,35 @@ public class CustomExceptionHandlerTest {
                                 .build()
                 ),
                 Arguments.of(
+                        new IllegalArgumentException("Invalid Argument"),
+                        ErrorResponse.builder()
+                                .status(400)
+                                .title("Bad Request")
+                                .message("Invalid Argument")
+                                .build()
+                ),
+                Arguments.of(
+                        new BadCredentialsException("message"),
+                        ErrorResponse.builder()
+                                .status(401)
+                                .title("Bad Credentials")
+                                .message("Invalid username or password")
+                                .build()
+                ),
+                Arguments.of(
+                        new AuthenticationException("message") {},
+                        ErrorResponse.builder()
+                                .status(401)
+                                .title(null)
+                                .message("message")
+                                .build()
+                ),
+                Arguments.of(
                         new NoHandlerFoundException("GET", "/home", new HttpHeaders()),
                         ErrorResponse.builder()
                                 .status(404)
                                 .title("Endpoint Not Found")
                                 .message("No endpoint GET /home.")
-                                .build()
-                ),
-                Arguments.of(
-                        new HttpMessageNotReadableException("message", (HttpInputMessage) null),
-                        ErrorResponse.builder()
-                                .status(422)
-                                .title("Validation Error")
-                                .message("message")
                                 .build()
                 ),
                 Arguments.of(
@@ -181,11 +169,35 @@ public class CustomExceptionHandlerTest {
                                 .build()
                 ),
                 Arguments.of(
-                        new IllegalArgumentException("Invalid Argument"),
+                        new HttpRequestMethodNotSupportedException("GET"),
                         ErrorResponse.builder()
-                                .status(400)
-                                .title("Bad Request")
-                                .message("Invalid Argument")
+                                .status(405)
+                                .title("Method Not Supported")
+                                .message("Request method 'GET' is not supported")
+                                .build()
+                ),
+                Arguments.of(
+                        new HttpMediaTypeNotAcceptableException("Exception message"),
+                        ErrorResponse.builder()
+                                .status(406)
+                                .title("Media Type Not Acceptable")
+                                .message("Exception message")
+                                .build()
+                ),
+                Arguments.of(
+                        new HttpMediaTypeNotSupportedException("Exception message"),
+                        ErrorResponse.builder()
+                                .status(415)
+                                .title("Media Type Not Supported")
+                                .message("Exception message")
+                                .build()
+                ),
+                Arguments.of(
+                        new HttpMessageNotReadableException("message", (HttpInputMessage) null),
+                        ErrorResponse.builder()
+                                .status(422)
+                                .title("Validation Error")
+                                .message("message")
                                 .build()
                 ),
                 Arguments.of(
@@ -213,6 +225,14 @@ public class CustomExceptionHandlerTest {
                                 .details(Map.of(
                                         "email", "Invalid email format"
                                 ))
+                                .build()
+                ),
+                Arguments.of(
+                        new Exception("Unknown exception"),
+                        ErrorResponse.builder()
+                                .status(500)
+                                .title("Internal Server Error")
+                                .message("Unknown exception")
                                 .build()
                 )
         );

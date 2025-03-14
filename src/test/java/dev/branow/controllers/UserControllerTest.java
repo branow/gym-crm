@@ -1,8 +1,12 @@
 package dev.branow.controllers;
 
 import dev.branow.dtos.request.LoginRequest;
+import dev.branow.dtos.response.JwtResponse;
 import dev.branow.dtos.service.ChangePasswordDto;
 import dev.branow.mappers.UserMapper;
+import dev.branow.security.JwtRevocationService;
+import dev.branow.security.JwtService;
+import dev.branow.security.LoginAttemptService;
 import dev.branow.services.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,6 +15,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,6 +31,7 @@ import static dev.branow.controllers.RestUtils.rest;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @EnableAspectJAutoProxy
@@ -35,6 +44,14 @@ public class UserControllerTest {
 
     @MockitoBean
     private UserService service;
+    @MockitoBean
+    private AuthenticationManager authenticationManager;
+    @MockitoBean
+    private JwtService jwtService;
+    @MockitoBean
+    private JwtRevocationService jwtRevocationService;
+    @MockitoBean
+    private LoginAttemptService loginAttemptService;
 
     @Autowired
     private UserController controller;
@@ -54,16 +71,50 @@ public class UserControllerTest {
     }
 
     @Test
-    public void testLogin() throws Exception {
+    public void testLogin_tooManyAttempts_return401() throws Exception {
         var loginRequest = new LoginRequest("username", "password");
-        var credentialsDto = mapper.mapCredentialsDto(loginRequest);
+        when(loginAttemptService.isBlocked(any())).thenReturn(true);
+        var request = rest(post("/users/login")).content(toJson(loginRequest));
+        mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testLogin_authenticationException_return401() throws Exception {
+        var loginRequest = new LoginRequest("username", "password");
+        var token = new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword());
+
+        when(loginAttemptService.isBlocked(any())).thenReturn(false);
+        when(authenticationManager.authenticate(token)).thenThrow(new BadCredentialsException(""));
 
         var request = rest(post("/users/login")).content(toJson(loginRequest));
         mockMvc.perform(request)
                 .andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().isUnauthorized());
 
-        verify(service, times(1)).matchCredentials(credentialsDto);
+        verify(loginAttemptService, times(1)).recordFailure(any());
+    }
+
+    @Test
+    public void testLogin() throws Exception {
+        var loginRequest = new LoginRequest("username", "password");
+        var token = new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword());
+        var jwt = "jwt";
+        var authentication = mock(Authentication.class);
+        var jwtResponse = new JwtResponse(jwt);
+
+        when(loginAttemptService.isBlocked(any())).thenReturn(false);
+        when(authenticationManager.authenticate(token)).thenReturn(authentication);
+        when(jwtService.generate(authentication)).thenReturn(jwt);
+
+        var request = rest(post("/users/login")).content(toJson(loginRequest));
+        mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string(toJson(jwtResponse)));
+
+        verify(loginAttemptService, times(1)).recordSuccess(any());
     }
 
     @Test

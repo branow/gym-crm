@@ -1,41 +1,60 @@
 package dev.branow.config;
 
+import dev.branow.security.CustomJwtAuthenticationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
 
     @Bean
-    AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
-        return configuration.getAuthenticationManager();
+    public DaoAuthenticationProvider authenticationProvider(
+            UserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder
+    ) {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder);
+        return provider;
     }
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests((auth) -> {
-            auth.requestMatchers(HttpMethod.POST, "/trainees").permitAll();
-            auth.requestMatchers(HttpMethod.POST, "/trainers").permitAll();
-            auth.requestMatchers(HttpMethod.POST, "/users/login").permitAll();
-            auth.anyRequest().authenticated();
-        });
-        http.cors(AbstractHttpConfigurer::disable);
-        http.csrf(AbstractHttpConfigurer::disable);
-        http.sessionManagement((config) -> config.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-        http.httpBasic(Customizer.withDefaults());
-        return http.build();
+    AuthenticationManager authenticationManager(
+            CustomJwtAuthenticationProvider jwtProvider,
+            DaoAuthenticationProvider daoProvider
+    ) {
+        return new ProviderManager(List.of(jwtProvider, daoProvider));
+    }
+
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager manager) throws Exception {
+        return http
+                .cors(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests((auth) -> {
+                    auth.requestMatchers(HttpMethod.POST, "/trainees").permitAll();
+                    auth.requestMatchers(HttpMethod.POST, "/trainers").permitAll();
+                    auth.requestMatchers(HttpMethod.POST, "/users/login").permitAll();
+                    auth.anyRequest().authenticated();
+                })
+                .oauth2ResourceServer(config -> config.jwt((jwtConfig -> jwtConfig.authenticationManager(manager))))
+                .sessionManagement((config) -> config.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .build();
     }
 
     @Bean

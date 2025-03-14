@@ -87,7 +87,7 @@ public class TraineeServiceTest extends DBTest {
            user.setUsername(username);
            user.setPassword(password);
            user.setIsActive(false);
-           return null;
+           return password;
         }).when(userService).prepareUserForCreation(trainee);
 
         var actual = service.create(createDto);

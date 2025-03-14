@@ -17,7 +17,7 @@ import java.util.UUID;
 public class LoggingFilter extends OncePerRequestFilter {
 
     @Override
-    protected void doFilterInternal(
+    public void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain

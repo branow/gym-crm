@@ -2,10 +2,8 @@ package dev.branow.services;
 
 import dev.branow.annotations.Log;
 import dev.branow.dtos.service.ChangePasswordDto;
-import dev.branow.dtos.service.CredentialsDto;
 import dev.branow.dtos.service.UpdateUserDto;
 import dev.branow.log.Level;
-import dev.branow.mappers.UserMapper;
 import dev.branow.model.User;
 import dev.branow.repositories.UserRepository;
 import dev.branow.utils.PasswordGenerator;
@@ -15,19 +13,15 @@ import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserService implements UserDetailsService {
+public class UserService {
 
     private final UserRepository repository;
-    private final UserMapper mapper;
     private final PasswordEncoder encoder;
     private final PasswordGenerator passwordGenerator;
     private final UsernameGenerator usernameGenerator;
@@ -35,13 +29,6 @@ public class UserService implements UserDetailsService {
     @Log(value = "getting user by username %0", level = Level.DEBUG)
     public User getByUsername(String username) {
         return repository.getReferenceByUsername(username);
-    }
-
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return repository.findByUsername(username)
-                .map(mapper::mapUserDetailsDto)
-                .orElseThrow(() -> new UsernameNotFoundException(username));
     }
 
     public String prepareUserForCreation(User user) {
