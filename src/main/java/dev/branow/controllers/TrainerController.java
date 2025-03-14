@@ -1,5 +1,6 @@
 package dev.branow.controllers;
 
+import dev.branow.annotations.Authorize;
 import dev.branow.dtos.request.CreateTrainerRequest;
 import dev.branow.dtos.request.UpdateTrainerRequest;
 import dev.branow.dtos.response.CredentialsResponse;
@@ -9,6 +10,7 @@ import dev.branow.dtos.service.ShortTrainerDto;
 import dev.branow.mappers.TrainerMapper;
 import dev.branow.mappers.TrainingMapper;
 import dev.branow.security.JwtService;
+import dev.branow.security.authorization.UserAuthorizer;
 import dev.branow.services.TrainerService;
 import dev.branow.services.TrainingService;
 import jakarta.validation.Valid;
@@ -43,6 +45,7 @@ public class TrainerController {
     }
 
     @GetMapping("/{username}")
+    @Authorize(UserAuthorizer.Username.class)
     public ResponseEntity<TrainerResponse> get(@PathVariable("username") String username) {
         var trainer = service.getByUsername(username);
         var response = mapper.mapTrainerResponse(trainer);
@@ -50,6 +53,7 @@ public class TrainerController {
     }
 
     @PutMapping("/{username}")
+    @Authorize(UserAuthorizer.Username.class)
     public ResponseEntity<TrainerResponse> update(
             @PathVariable("username") String username,
             @RequestBody @Valid UpdateTrainerRequest request
@@ -61,6 +65,7 @@ public class TrainerController {
     }
 
     @GetMapping
+    @Authorize(UserAuthorizer.Username.class)
     public ResponseEntity<List<ShortTrainerDto>> getAllNotAssigned(
             @RequestParam("unassigned") String username
     ) {
@@ -69,6 +74,7 @@ public class TrainerController {
     }
 
     @GetMapping("/{username}/trainings")
+    @Authorize(UserAuthorizer.Username.class)
     public ResponseEntity<List<TrainingResponse>> getTrainings(
             @PathVariable("username") String username,
             @RequestParam(value = "from", required = false) LocalDate from,

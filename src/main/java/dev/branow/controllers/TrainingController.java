@@ -1,7 +1,9 @@
 package dev.branow.controllers;
 
+import dev.branow.annotations.Authorize;
 import dev.branow.dtos.request.CreateTrainingRequest;
 import dev.branow.mappers.TrainingMapper;
+import dev.branow.security.authorization.UserAuthorizer;
 import dev.branow.services.TrainingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ public class TrainingController {
     private final TrainingMapper mapper;
 
     @PostMapping
+    @Authorize(UserAuthorizer.CreateTrainingRequest.class)
     public ResponseEntity<?> create(
             @RequestBody @Valid CreateTrainingRequest request
     ) {

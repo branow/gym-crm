@@ -1,5 +1,6 @@
 package dev.branow.controllers;
 
+import dev.branow.annotations.Authorize;
 import dev.branow.dtos.request.LoginRequest;
 import dev.branow.dtos.response.JwtResponse;
 import dev.branow.dtos.service.ChangePasswordDto;
@@ -7,6 +8,7 @@ import dev.branow.exceptions.LoginAttemptLimitExceededException;
 import dev.branow.security.JwtRevocationService;
 import dev.branow.security.JwtService;
 import dev.branow.security.LoginAttemptService;
+import dev.branow.security.authorization.UserAuthorizer;
 import dev.branow.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -61,6 +63,7 @@ public class UserController {
     }
 
     @PutMapping("/{username}/password")
+    @Authorize(UserAuthorizer.Username.class)
     public ResponseEntity<?> changePassword(
             @PathVariable("username") String username,
             @RequestBody @Valid ChangePasswordDto dto
@@ -70,6 +73,7 @@ public class UserController {
     }
 
     @PatchMapping("/{username}/toggle")
+    @Authorize(UserAuthorizer.Username.class)
     public ResponseEntity<?> toggleActivation(@PathVariable("username") String username) {
         service.toggleActive(username);
         return ResponseEntity.ok().build();

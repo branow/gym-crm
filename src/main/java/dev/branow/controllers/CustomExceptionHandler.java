@@ -9,6 +9,7 @@ import org.hibernate.ObjectNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
@@ -36,22 +37,32 @@ public class CustomExceptionHandler {
     private final Map<Class<? extends Exception>, String> titles = new HashMap<>();
 
     {
+        // 400
+        titles.put(MissingServletRequestParameterException.class, "Missing Request Parameter");
+        titles.put(MissingServletRequestPartException.class, "Missing Request Part");
+        titles.put(MissingPathVariableException.class, "Missing Path Variable");
+        titles.put(IllegalArgumentException.class, "Bad Request");
+        titles.put(ServletRequestBindingException.class, "Request Binding Error");
+        // 401
         titles.put(AuthenticationException.class, "Authentication Error");
         titles.put(BadCredentialsException.class, "Bad Credentials");
         titles.put(LoginAttemptLimitExceededException.class, "Login Attempt Limit Exceeded");
+        // 403
+        titles.put(AccessDeniedException.class, "Access Denied");
+        // 404
         titles.put(ObjectNotFoundException.class, "Entity Not Found");
+        titles.put(NoHandlerFoundException.class, "Endpoint Not Found");
+        // 405
+        titles.put(HttpRequestMethodNotSupportedException.class, "Method Not Supported");
+        // 406
+        titles.put(HttpMediaTypeNotAcceptableException.class, "Media Type Not Acceptable");
+        // 415
+        titles.put(HttpMediaTypeNotSupportedException.class, "Media Type Not Supported");
+        // 422
         titles.put(MethodArgumentNotValidException.class, "Validation Error");
         titles.put(ValidationException.class, "Validation Error");
         titles.put(HttpMessageNotReadableException.class, "Validation Error");
-        titles.put(IllegalArgumentException.class, "Bad Request");
-        titles.put(HttpRequestMethodNotSupportedException.class, "Method Not Supported");
-        titles.put(HttpMediaTypeNotSupportedException.class, "Media Type Not Supported");
-        titles.put(HttpMediaTypeNotAcceptableException.class, "Media Type Not Acceptable");
-        titles.put(MissingPathVariableException.class, "Missing Path Variable");
-        titles.put(MissingServletRequestParameterException.class, "Missing Request Parameter");
-        titles.put(MissingServletRequestPartException.class, "Missing Request Part");
-        titles.put(ServletRequestBindingException.class, "Request Binding Error");
-        titles.put(NoHandlerFoundException.class, "Endpoint Not Found");
+        // 500
         titles.put(Exception.class, "Internal Server Error");
     }
 
@@ -83,6 +94,15 @@ public class CustomExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException ex) {
         return buildResponse(ErrorResponse.builder()
                 .status(HttpStatus.UNAUTHORIZED.value())
+                .title(titles.get(ex.getClass()))
+                .message(ex.getMessage())
+                .build());
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
+        return buildResponse(ErrorResponse.builder()
+                .status(HttpStatus.FORBIDDEN.value())
                 .title(titles.get(ex.getClass()))
                 .message(ex.getMessage())
                 .build());

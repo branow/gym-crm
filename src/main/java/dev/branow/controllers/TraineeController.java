@@ -1,5 +1,6 @@
 package dev.branow.controllers;
 
+import dev.branow.annotations.Authorize;
 import dev.branow.dtos.request.CreateTraineeRequest;
 import dev.branow.dtos.request.UpdateFavoriteTrainersRequest;
 import dev.branow.dtos.request.UpdateTraineeRequest;
@@ -10,6 +11,7 @@ import dev.branow.dtos.response.TraineeResponse;
 import dev.branow.mappers.TraineeMapper;
 import dev.branow.mappers.TrainingMapper;
 import dev.branow.security.JwtService;
+import dev.branow.security.authorization.UserAuthorizer;
 import dev.branow.services.TraineeService;
 import dev.branow.services.TrainingService;
 import jakarta.validation.Valid;
@@ -44,12 +46,14 @@ public class TraineeController {
     }
 
     @GetMapping("/{username}")
+    @Authorize(UserAuthorizer.Username.class)
     public ResponseEntity<TraineeResponse> get(@PathVariable("username") String username) {
         var trainee = mapper.mapTraineeResponse(service.getByUsername(username));
         return ResponseEntity.ok(trainee);
     }
 
     @PutMapping("/{username}")
+    @Authorize(UserAuthorizer.Username.class)
     public ResponseEntity<TraineeResponse> update(
             @PathVariable("username") String username,
             @RequestBody @Valid UpdateTraineeRequest request
@@ -61,12 +65,14 @@ public class TraineeController {
     }
 
     @DeleteMapping("/{username}")
+    @Authorize(UserAuthorizer.Username.class)
     public ResponseEntity<?> delete(@PathVariable("username") String username) {
         service.deleteByUsername(username);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{username}/favorite-trainers")
+    @Authorize(UserAuthorizer.Username.class)
     public ResponseEntity<List<ShortTrainerDto>> updateFavouriteTrainers(
             @PathVariable("username") String username,
             @RequestBody @Valid UpdateFavoriteTrainersRequest request
@@ -77,6 +83,7 @@ public class TraineeController {
     }
 
     @GetMapping("/{username}/trainings")
+    @Authorize(UserAuthorizer.Username.class)
     public ResponseEntity<List<TrainingResponse>> getTrainings(
             @PathVariable("username") String username,
             @RequestParam(value = "from", required = false) LocalDate from,
